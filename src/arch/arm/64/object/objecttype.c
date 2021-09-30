@@ -377,6 +377,10 @@ word_t Arch_getObjectSize(word_t t)
     case seL4_ARM_VCPUObject:
         return VCPU_SIZE_BITS;
 #endif
+#ifdef CONFIG_HAVE_FPU
+        case seL4_ARM_FPUObject:
+            return seL4_FPUBits;
+#endif
     default:
         fail("Invalid object type");
         return 0;

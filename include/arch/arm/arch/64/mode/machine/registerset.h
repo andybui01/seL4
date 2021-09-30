@@ -250,9 +250,6 @@ typedef struct user_fpu_state {
  */
 struct user_context {
     word_t registers[n_contextRegisters];
-#ifdef CONFIG_HAVE_FPU
-    user_fpu_state_t fpuState;
-#endif /* CONFIG_HAVE_FPU */
 };
 typedef struct user_context user_context_t;
 
@@ -266,4 +263,3 @@ static inline void Arch_initContext(user_context_t *context)
 }
 
 #endif /* !__ASSEMBLER__ */
-

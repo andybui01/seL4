@@ -203,6 +203,10 @@ enum tcb_cnode_index {
     /* IPC buffer cap slot */
     tcbBuffer = 4,
 #endif
+#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
+    /* FPU cap slot */
+    tcbFPU = 5,
+#endif
     tcbCNodeEntries
 };
 typedef word_t tcb_cnode_index_t;
@@ -425,4 +429,3 @@ isArchCap(cap_t cap)
 {
     return (cap_get_capType(cap) % 2);
 }
-

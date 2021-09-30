@@ -16,6 +16,12 @@
 #include <arch/machine/hardware.h>
 #include <arch/machine/registerset.h>
 
+#ifdef CONFIG_HAVE_FPU
+typedef struct fpu {
+    user_fpu_state_t fpuState;
+} fpu_t;
+#endif
+
 typedef struct arch_tcb {
     user_context_t tcbContext;
 #ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
@@ -97,6 +103,9 @@ typedef pgde_t vspace_root_t;
 
 #define PT_PTR(r)           ((pte_t *)(r))
 #define PT_REF(p)           ((word_t)(p))
+
+#define FPU_PTR(r)          ((fpu_t *)(r))
+#define FPU_REF(p)          ((word_t)(p))
 
 /* Generate a vcpu_t pointer from a vcpu block reference */
 #define VCPU_PTR(r)       ((struct vcpu *)(r))
@@ -293,4 +302,3 @@ static inline pte_t pte_invalid_new(void)
         }
     };
 }
-

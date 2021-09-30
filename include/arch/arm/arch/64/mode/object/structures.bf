@@ -17,8 +17,24 @@ base 64(48,1)
 -- we need the structures to be visible here when building
 -- the capType
 #include <object/structures_64.bf>
- 
+
 ---- ARM-specific caps
+
+block fpu_cap {
+    padding 64
+
+    field capType 5
+#if BF_CANONICAL_RANGE == 48
+    padding 11
+    field_high capFPUPtr 48
+#elif BF_CANONICAL_RANGE == 39
+    padding 20
+    field_high capFPUPtr 39
+#else
+#error "Unspecified canonical address range"
+#endif
+}
+
 
 block frame_cap {
     field capFMappedASID             16
@@ -67,9 +83,9 @@ block page_upper_directory_cap {
 #if defined (CONFIG_ARM_SMMU)  && defined (AARCH64_VSPACE_S2_START_L1)
     field capPUDMappedCB             12
     padding                          36
-#else 
+#else
     padding                          48
-#endif 
+#endif
 }
 
 -- First-level page table (page global directory)
@@ -79,12 +95,12 @@ block page_global_directory_cap {
 
     field capType                    5
     field capPGDIsMapped             1
-#ifdef CONFIG_ARM_SMMU 
+#ifdef CONFIG_ARM_SMMU
     field capPGDMappedCB             12
     padding                          46
-#else 
+#else
     padding                          58
-#endif 
+#endif
 }
 
 -- Cap to the table of 2^7 ASID pools
@@ -190,6 +206,7 @@ tagged_union cap capType {
     tag cb_control_cap              21
     tag cb_cap                      23
 #endif
+    tag fpu_cap                     25
 }
 
 ---- Arch-independent object types

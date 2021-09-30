@@ -164,6 +164,9 @@ BOOT_CODE static word_t calculate_rootserver_size(v_region_t it_v_reg, word_t ex
 #ifdef CONFIG_KERNEL_MCS
     size += BIT(seL4_MinSchedContextBits); // root sched context
 #endif
+#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
+    size += BIT(seL4_FPUBits); // fpu
+#endif
     /* for all archs, seL4_PageTable Bits is the size of all non top-level paging structures */
     return size + arch_get_n_paging(it_v_reg) * BIT(seL4_PageTableBits);
 }
@@ -222,6 +225,10 @@ BOOT_CODE static void create_rootserver_objects(pptr_t start, v_region_t it_v_re
     /* for most archs, TCBs are smaller than page tables */
 #if seL4_TCBBits < seL4_PageTableBits
     rootserver.tcb = alloc_rootserver_obj(seL4_TCBBits, 1);
+#endif
+
+#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
+    rootserver.fpu = alloc_rootserver_obj(seL4_FPUBits, 1);
 #endif
 
 #ifdef CONFIG_KERNEL_MCS
@@ -403,6 +410,15 @@ BOOT_CODE cap_t create_it_asid_pool(cap_t root_cnode_cap)
     return ap_cap;
 }
 
+#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
+BOOT_CODE cap_t create_it_fpu(cap_t root_cnode_cap)
+{
+    cap_t fpu_cap = cap_fpu_cap_new(rootserver.fpu);
+    write_slot(SLOT_PTR(pptr_of_cap(root_cnode_cap), seL4_CapFPU), fpu_cap);
+    return fpu_cap;
+}
+#endif
+
 #ifdef CONFIG_KERNEL_MCS
 BOOT_CODE static bool_t configure_sched_context(tcb_t *tcb, sched_context_t *sc_pptr, ticks_t timeslice, word_t core)
 {
@@ -464,8 +480,13 @@ BOOT_CODE bool_t create_idle_thread(void)
     return true;
 }
 
+#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
+BOOT_CODE tcb_t *create_initial_thread(cap_t root_cnode_cap, cap_t it_pd_cap, vptr_t ui_v_entry, vptr_t bi_frame_vptr,
+                                       vptr_t ipcbuf_vptr, cap_t ipcbuf_cap, cap_t it_fpu_cap)
+#else
 BOOT_CODE tcb_t *create_initial_thread(cap_t root_cnode_cap, cap_t it_pd_cap, vptr_t ui_v_entry, vptr_t bi_frame_vptr,
                                        vptr_t ipcbuf_vptr, cap_t ipcbuf_cap)
+#endif
 {
     tcb_t *tcb = TCB_PTR(rootserver.tcb + TCB_OFFSET);
 #ifndef CONFIG_KERNEL_MCS
@@ -497,6 +518,15 @@ BOOT_CODE tcb_t *create_initial_thread(cap_t root_cnode_cap, cap_t it_pd_cap, vp
         SLOT_PTR(pptr_of_cap(root_cnode_cap), seL4_CapInitThreadIPCBuffer),
         SLOT_PTR(rootserver.tcb, tcbBuffer)
     );
+
+#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
+    cteInsert(
+        it_fpu_cap,
+        SLOT_PTR(pptr_of_cap(root_cnode_cap), seL4_CapFPU),
+        SLOT_PTR(rootserver.tcb, tcbFPU)
+    );
+#endif
+
     tcb->tcbIPCBuffer = ipcbuf_vptr;
 
     setRegister(tcb, capRegister, bi_frame_vptr);

@@ -51,8 +51,22 @@ exception_t handleFPUFault(void)
      * we presumably are happy to assume will not be running seL4. */
     assert(!nativeThreadUsingFPU(NODE_STATE(ksCurThread)));
 
+#if defined(CONFIG_ARCH_AARCH64)
+    /* Check for FPU cap if aarch64 */
+    tcb_t *tcb = NODE_STATE(ksCurThread);
+    cap_t cap = TCB_PTR_CTE_PTR(tcb, tcbFPU)->cap;
+
+    if (cap_get_capType(cap) != cap_fpu_cap) {
+        fail("Bad FPU cap");
+        UNREACHABLE();
+    }
+
+    fpu_t *fpu = FPU_PTR(cap_fpu_cap_get_capFPUPtr(cap));
+    switchLocalFpuOwner(&fpu->fpuState);
+#else
     /* Otherwise, lazily switch over the FPU. */
     switchLocalFpuOwner(&NODE_STATE(ksCurThread)->tcbArch.tcbContext.fpuState);
+#endif
 
     return EXCEPTION_NONE;
 }

@@ -27,8 +27,14 @@ void switchFpuOwner(user_fpu_state_t *new_owner, word_t cpu);
 /* Returns whether or not the passed thread is using the current active fpu state */
 static inline bool_t nativeThreadUsingFPU(tcb_t *thread)
 {
+#ifdef CONFIG_ARCH_AARCH64
+    cap_t cap = TCB_PTR_CTE_PTR(thread, tcbFPU)->cap;
+    return &FPU_PTR(cap_fpu_cap_get_capFPUPtr(cap))->fpuState ==
+           NODE_STATE_ON_CORE(ksActiveFPUState, thread->tcbAffinity);
+#else
     return &thread->tcbArch.tcbContext.fpuState ==
            NODE_STATE_ON_CORE(ksActiveFPUState, thread->tcbAffinity);
+#endif
 }
 
 static inline void FORCE_INLINE lazyFPURestore(tcb_t *thread)
@@ -57,4 +63,3 @@ static inline void FORCE_INLINE lazyFPURestore(tcb_t *thread)
 }
 
 #endif /* CONFIG_HAVE_FPU */
-
