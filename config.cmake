@@ -87,7 +87,7 @@ if(DEFINED CALLED_declare_default_headers)
 endif()
 
 # Set defaults for common variables
-set(KernelHaveFPU OFF)
+set(KernelHaveFPU ON)
 set(KernelSetTLSBaseSelf OFF)
 
 include(src/arch/${KernelArch}/config.cmake)

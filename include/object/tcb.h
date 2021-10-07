@@ -145,6 +145,9 @@ exception_t decodeSetSpace(cap_t cap, word_t length,
 exception_t decodeDomainInvocation(word_t invLabel, word_t length, word_t *buffer);
 exception_t decodeBindNotification(cap_t cap);
 exception_t decodeUnbindNotification(cap_t cap);
+#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
+exception_t decodeBindFPU(cap_t cap, cte_t *slot);
+#endif
 #ifdef CONFIG_KERNEL_MCS
 exception_t decodeSetTimeoutEndpoint(cap_t cap, cte_t *slot);
 #endif
@@ -230,4 +233,3 @@ void Arch_migrateTCB(tcb_t *thread);
 #ifdef CONFIG_DEBUG_BUILD
 void setThreadName(tcb_t *thread, const char *name);
 #endif /* CONFIG_DEBUG_BUILD */
-

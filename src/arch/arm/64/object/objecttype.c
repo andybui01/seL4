@@ -109,6 +109,12 @@ deriveCap_ret_t Arch_deriveCap(cte_t *slot, cap_t cap)
         ret.status = EXCEPTION_NONE;
         return ret;
 #endif
+#ifdef CONFIG_HAVE_FPU
+    case cap_fpu_cap:
+        ret.cap = cap;
+        ret.status = EXCEPTION_NONE;
+        return ret;
+#endif
     default:
         /* This assert has no equivalent in haskell,
          * as the options are restricted by type */
@@ -325,6 +331,14 @@ bool_t CONST Arch_sameRegionAs(cap_t cap_a, cap_t cap_b)
         }
         break;
 #endif
+#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
+    case cap_fpu_cap:
+        if (cap_get_capType(cap_b) == cap_fpu_cap) {
+            return cap_fpu_cap_get_capFPUPtr(cap_a) ==
+                   cap_fpu_cap_get_capFPUPtr(cap_b);
+        }
+        break;
+#endif
     }
     return false;
 }
@@ -468,6 +482,11 @@ cap_t Arch_createObject(object_t t, void *regionBase, word_t userSize, bool_t de
           (Ptr (ptr_val \<acute>regionBase) :: vcpu_C ptr))" */
         vcpu_init(VCPU_PTR(regionBase));
         return cap_vcpu_cap_new(VCPU_REF(regionBase));
+#endif
+
+#ifdef CONFIG_HAVE_FPU
+    case seL4_ARM_FPUObject:
+        return cap_fpu_cap_new((word_t)regionBase);
 #endif
 
     default:

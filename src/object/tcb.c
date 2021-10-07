@@ -831,6 +831,11 @@ exception_t decodeTCBInvocation(word_t invLabel, word_t length, cap_t cap,
     case TCBUnbindNotification:
         return decodeUnbindNotification(cap);
 
+#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
+    case TCBBindFPU:
+        return decodeBindFPU(cap, slot);
+#endif
+
 #ifdef CONFIG_KERNEL_MCS
     case TCBSetTimeoutEndpoint:
         return decodeSetTimeoutEndpoint(cap, slot);
@@ -1652,6 +1657,57 @@ exception_t decodeUnbindNotification(cap_t cap)
     setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
     return invokeTCB_NotificationControl(tcb, NULL);
 }
+
+#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
+exception_t decodeBindFPU(cap_t cap, cte_t *slot)
+{
+    tcb_t *tcb;
+
+    tcb = TCB_PTR(cap_thread_cap_get_capTCBPtr(cap));
+
+    cte_t *fpuSlot;
+    cap_t fpuCap;
+    deriveCap_ret_t dc_ret;
+
+    if (current_extra_caps.excaprefs[0] == NULL) {
+        userError("TCB BindFPU: Truncated message.");
+        current_syscall_error.type = seL4_TruncatedMessage;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    fpuSlot = current_extra_caps.excaprefs[0];
+    fpuCap = current_extra_caps.excaprefs[0]->cap;
+
+    dc_ret = deriveCap(fpuSlot, fpuCap);
+    if (dc_ret.status != EXCEPTION_NONE) {
+        return dc_ret.status;
+    }
+    fpuCap = dc_ret.cap;
+
+    if (cap_get_capType(fpuCap) != cap_fpu_cap) {
+        userError("TCB BindFPU: Invalid CNode cap.");
+        current_syscall_error.type = seL4_IllegalOperation;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    cte_t *rootSlot;
+    rootSlot = TCB_PTR_CTE_PTR(tcb, tcbFPU);
+
+    int err = cteDelete(rootSlot, true);
+    if (err != EXCEPTION_NONE) {
+        return err;
+    }
+
+    if (sameObjectAs(fpuCap, fpuSlot->cap) &&
+        sameObjectAs(cap, slot->cap)) {
+        cteInsert(fpuCap, fpuSlot, rootSlot);
+    }
+
+    setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
+
+    return EXCEPTION_NONE;
+}
+#endif
 
 /* The following functions sit in the preemption monad and implement the
  * preemptible, non-faulting bottom end of a TCB invocation. */
