@@ -73,7 +73,11 @@ NODE_STATE_DECLARE(sched_context_t, *ksCurSC);
 
 #ifdef CONFIG_HAVE_FPU
 /* Current state installed in the FPU, or NULL if the FPU is currently invalid */
+#ifdef CONFIG_ARCH_AARCH64
+NODE_STATE_DECLARE(fpu_t *, ksActiveFPU);
+#else
 NODE_STATE_DECLARE(user_fpu_state_t *, ksActiveFPUState);
+#endif
 /* Number of times we have restored a user context with an active FPU without switching it */
 NODE_STATE_DECLARE(word_t, ksFPURestoresSinceSwitch);
 #endif /* CONFIG_HAVE_FPU */
@@ -129,4 +133,3 @@ extern paddr_t ksUserLogBuffer;
 #define MODE_NODE_STATE(_state)    MODE_NODE_STATE_ON_CORE(_state, getCurrentCPUIndex())
 #define ARCH_NODE_STATE(_state)    ARCH_NODE_STATE_ON_CORE(_state, getCurrentCPUIndex())
 #define NODE_STATE(_state)         NODE_STATE_ON_CORE(_state, getCurrentCPUIndex())
-

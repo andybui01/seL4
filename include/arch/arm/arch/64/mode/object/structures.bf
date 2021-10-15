@@ -21,18 +21,11 @@ base 64(48,1)
 ---- ARM-specific caps
 
 block fpu_cap {
-    padding 64
+    padding                          64
 
-    field capType 5
-#if BF_CANONICAL_RANGE == 48
-    padding 11
-    field_high capFPUPtr 48
-#elif BF_CANONICAL_RANGE == 39
-    padding 20
-    field_high capFPUPtr 39
-#else
-#error "Unspecified canonical address range"
-#endif
+    field capType                    5
+    padding                          11
+    field_high capFPUPtr             48
 }
 
 

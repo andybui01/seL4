@@ -183,7 +183,7 @@ typedef enum {
 #define seL4_NotificationBits 5
 #endif
 #ifdef CONFIG_HAVE_FPU
-#define seL4_FPUBits 10
+#define seL4_FPUBits 9
 #endif
 
 #define seL4_PageTableBits 12

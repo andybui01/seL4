@@ -18,12 +18,18 @@
 
 #ifdef CONFIG_HAVE_FPU
 typedef struct fpu {
-    user_fpu_state_t fpuState;
+    user_fpu_state_t *fpuState;
+    uint32_t fpsr;
+    uint32_t fpcr;
 } fpu_t;
 #endif
 
 typedef struct arch_tcb {
+    /* 37 words */
     user_context_t tcbContext;
+
+    /* 2 words */
+    fpu_t fpu;
 #ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
     struct vcpu *tcbVCPU;
 #endif

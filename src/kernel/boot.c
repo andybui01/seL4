@@ -525,6 +525,8 @@ BOOT_CODE tcb_t *create_initial_thread(cap_t root_cnode_cap, cap_t it_pd_cap, vp
         SLOT_PTR(pptr_of_cap(root_cnode_cap), seL4_CapFPU),
         SLOT_PTR(rootserver.tcb, tcbFPU)
     );
+
+    tcb->tcbArch.fpu.fpuState = (user_fpu_state_t *) rootserver.fpu;
 #endif
 
     tcb->tcbIPCBuffer = ipcbuf_vptr;
@@ -577,7 +579,11 @@ BOOT_CODE tcb_t *create_initial_thread(cap_t root_cnode_cap, cap_t it_pd_cap, vp
 BOOT_CODE void init_core_state(tcb_t *scheduler_action)
 {
 #ifdef CONFIG_HAVE_FPU
+#ifdef CONFIG_ARCH_AARCH64
+    NODE_STATE(ksActiveFPU) = NULL;
+#else
     NODE_STATE(ksActiveFPUState) = NULL;
+#endif
 #endif
 #ifdef CONFIG_DEBUG_BUILD
     /* add initial threads to the debug queue */

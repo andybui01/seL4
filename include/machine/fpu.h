@@ -19,22 +19,31 @@ void fpuThreadDelete(tcb_t *thread);
 /* Handle an FPU exception. */
 exception_t handleFPUFault(void);
 
+#ifdef CONFIG_ARCH_AARCH64
+void switchLocalFpuOwner(fpu_t *new_owner);
+#else
 void switchLocalFpuOwner(user_fpu_state_t *new_owner);
+#endif
 
 /* Switch the current owner of the FPU state on the core specified by 'cpu'. */
+#ifdef CONFIG_ARCH_AARCH64
+void switchFpuOwner(fpu_t *new_owner, word_t cpu);
+#else
 void switchFpuOwner(user_fpu_state_t *new_owner, word_t cpu);
+#endif
 
 /* Returns whether or not the passed thread is using the current active fpu state */
 static inline bool_t nativeThreadUsingFPU(tcb_t *thread)
 {
 #ifdef CONFIG_ARCH_AARCH64
+    /* redundant...? */
     cap_t cap = TCB_PTR_CTE_PTR(thread, tcbFPU)->cap;
     if (cap_get_capType(cap) != cap_fpu_cap) {
         return false;
     }
 
-    return &FPU_PTR(cap_fpu_cap_get_capFPUPtr(cap))->fpuState ==
-           NODE_STATE_ON_CORE(ksActiveFPUState, thread->tcbAffinity);
+    return &thread->tcbArch.fpu ==
+           NODE_STATE_ON_CORE(ksActiveFPU, thread->tcbAffinity);
 #else
     return &thread->tcbArch.tcbContext.fpuState ==
            NODE_STATE_ON_CORE(ksActiveFPUState, thread->tcbAffinity);
@@ -43,7 +52,11 @@ static inline bool_t nativeThreadUsingFPU(tcb_t *thread)
 
 static inline void FORCE_INLINE lazyFPURestore(tcb_t *thread)
 {
+#ifdef CONFIG_ARCH_AARCH64
+    if (unlikely(NODE_STATE(ksActiveFPU))) {
+#else
     if (unlikely(NODE_STATE(ksActiveFPUState))) {
+#endif
         /* If we have enabled/disabled the FPU too many times without
          * someone else trying to use it, we assume it is no longer
          * in use and switch out its state. */

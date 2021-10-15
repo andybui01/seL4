@@ -12,6 +12,22 @@
 
 #ifdef CONFIG_HAVE_FPU
 /* Switch the owner of the FPU to the given thread on local core. */
+#ifdef CONFIG_ARCH_AARCH64
+void switchLocalFpuOwner(fpu_t *new_owner)
+{
+    enableFpu();
+    if (NODE_STATE(ksActiveFPU)) {
+        saveFpuState(NODE_STATE(ksActiveFPU));
+    }
+    if (new_owner) {
+        NODE_STATE(ksFPURestoresSinceSwitch) = 0;
+        loadFpuState(new_owner);
+    } else {
+        disableFpu();
+    }
+    NODE_STATE(ksActiveFPU) = new_owner;
+}
+#else
 void switchLocalFpuOwner(user_fpu_state_t *new_owner)
 {
     enableFpu();
@@ -26,8 +42,13 @@ void switchLocalFpuOwner(user_fpu_state_t *new_owner)
     }
     NODE_STATE(ksActiveFPUState) = new_owner;
 }
+#endif
 
+#ifdef CONFIG_ARCH_AARCH64
+void switchFpuOwner(fpu_t *new_owner, word_t cpu)
+#else
 void switchFpuOwner(user_fpu_state_t *new_owner, word_t cpu)
+#endif
 {
 #ifdef ENABLE_SMP_SUPPORT
     if (cpu != getCurrentCPUIndex()) {
@@ -51,6 +72,7 @@ exception_t handleFPUFault(void)
      * we presumably are happy to assume will not be running seL4. */
     assert(!nativeThreadUsingFPU(NODE_STATE(ksCurThread)));
 
+    /* Otherwise, lazily switch over the FPU. */
 #if defined(CONFIG_ARCH_AARCH64)
     /* Check for FPU cap if aarch64 */
     tcb_t *tcb = NODE_STATE(ksCurThread);
@@ -61,10 +83,8 @@ exception_t handleFPUFault(void)
         UNREACHABLE();
     }
 
-    fpu_t *fpu = FPU_PTR(cap_fpu_cap_get_capFPUPtr(cap));
-    switchLocalFpuOwner(&fpu->fpuState);
+    switchLocalFpuOwner(&tcb->tcbArch.fpu);
 #else
-    /* Otherwise, lazily switch over the FPU. */
     switchLocalFpuOwner(&NODE_STATE(ksCurThread)->tcbArch.tcbContext.fpuState);
 #endif
 
@@ -75,7 +95,7 @@ exception_t handleFPUFault(void)
 void fpuThreadDelete(tcb_t *thread)
 {
     /* If the thread being deleted currently owns the FPU, switch away from it
-     * so that 'ksActiveFPUState' doesn't point to invalid memory. */
+     * so that 'ksActiveFPU/ksActiveFPUState' doesn't point to invalid memory. */
     if (nativeThreadUsingFPU(thread)) {
         switchFpuOwner(NULL, SMP_TERNARY(thread->tcbAffinity, 0));
     }

@@ -417,6 +417,9 @@ void cteInsert(cap_t newCap, cte_t *srcSlot, cte_t *destSlot)
     srcCap = srcSlot->cap;
 
     newCapIsRevocable = isCapRevocable(newCap, srcCap);
+    // if (cap_get_capType(srcCap) == cap_fpu_cap && newCapIsRevocable) {
+    //     printf("revocable FPU\n");
+    // }
 
     newMDB = mdb_node_set_mdbPrev(srcMDB, CTE_REF(srcSlot));
     newMDB = mdb_node_set_mdbRevocable(newMDB, newCapIsRevocable);
@@ -529,6 +532,10 @@ exception_t cteRevoke(cte_t *slot)
 {
     cte_t *nextPtr;
     exception_t status;
+
+    // if (cap_get_capType(slot->cap) == cap_fpu_cap) {
+    //     printf("REVOKING FPU CAP\n");
+    // }
 
     /* there is no need to check for a NullCap as NullCaps are
        always accompanied by null mdb pointers */

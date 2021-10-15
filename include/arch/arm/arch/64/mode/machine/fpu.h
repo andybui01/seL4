@@ -6,79 +6,68 @@
 
 #pragma once
 
+#include <config.h>
 #include <mode/machine/registerset.h>
 
 extern bool_t isFPUEnabledCached[CONFIG_MAX_NUM_NODES];
 
 #ifdef CONFIG_HAVE_FPU
 /* Store state in the FPU registers into memory. */
-static inline void saveFpuState(user_fpu_state_t *dest)
+static inline void saveFpuState(fpu_t *dest)
 {
-    word_t temp;
-
     asm volatile(
         /* SIMD and floating-point register file */
-        "stp     q0, q1, [%1, #16 * 0]      \n"
-        "stp     q2, q3, [%1, #16 * 2]      \n"
-        "stp     q4, q5, [%1, #16 * 4]      \n"
-        "stp     q6, q7, [%1, #16 * 6]      \n"
-        "stp     q8, q9, [%1, #16 * 8]      \n"
-        "stp     q10, q11, [%1, #16 * 10]   \n"
-        "stp     q12, q13, [%1, #16 * 12]   \n"
-        "stp     q14, q15, [%1, #16 * 14]   \n"
-        "stp     q16, q17, [%1, #16 * 16]   \n"
-        "stp     q18, q19, [%1, #16 * 18]   \n"
-        "stp     q20, q21, [%1, #16 * 20]   \n"
-        "stp     q22, q23, [%1, #16 * 22]   \n"
-        "stp     q24, q25, [%1, #16 * 24]   \n"
-        "stp     q26, q27, [%1, #16 * 26]   \n"
-        "stp     q28, q29, [%1, #16 * 28]   \n"
-        "stp     q30, q31, [%1, #16 * 30]   \n"
-
-        /* FP control and status registers */
-        "mrs     %0, fpsr                   \n"
-        "str     %w0, [%1, #16 * 32]        \n"
-        "mrs     %0, fpcr                   \n"
-        "str     %w0, [%1, #16 * 32 + 4]    \n"
-        : "=&r"(temp)
-        : "r"(dest)
+        "stp     q0, q1, [%0, #16 * 0]      \n"
+        "stp     q2, q3, [%0, #16 * 2]      \n"
+        "stp     q4, q5, [%0, #16 * 4]      \n"
+        "stp     q6, q7, [%0, #16 * 6]      \n"
+        "stp     q8, q9, [%0, #16 * 8]      \n"
+        "stp     q10, q11, [%0, #16 * 10]   \n"
+        "stp     q12, q13, [%0, #16 * 12]   \n"
+        "stp     q14, q15, [%0, #16 * 14]   \n"
+        "stp     q16, q17, [%0, #16 * 16]   \n"
+        "stp     q18, q19, [%0, #16 * 18]   \n"
+        "stp     q20, q21, [%0, #16 * 20]   \n"
+        "stp     q22, q23, [%0, #16 * 22]   \n"
+        "stp     q24, q25, [%0, #16 * 24]   \n"
+        "stp     q26, q27, [%0, #16 * 26]   \n"
+        "stp     q28, q29, [%0, #16 * 28]   \n"
+        "stp     q30, q31, [%0, #16 * 30]   \n"
+        :
+        : "r"(dest->fpuState)
         : "memory"
     );
+    MRS("fpsr", dest->fpsr);
+    MRS("fpcr", dest->fpcr);
 }
 
 /* Load FPU state from memory into the FPU registers. */
-static inline void loadFpuState(user_fpu_state_t *src)
+static inline void loadFpuState(fpu_t *src)
 {
-    word_t temp;
-
     asm volatile(
         /* SIMD and floating-point register file */
-        "ldp     q0, q1, [%1, #16 * 0]      \n"
-        "ldp     q2, q3, [%1, #16 * 2]      \n"
-        "ldp     q4, q5, [%1, #16 * 4]      \n"
-        "ldp     q6, q7, [%1, #16 * 6]      \n"
-        "ldp     q8, q9, [%1, #16 * 8]      \n"
-        "ldp     q10, q11, [%1, #16 * 10]   \n"
-        "ldp     q12, q13, [%1, #16 * 12]   \n"
-        "ldp     q14, q15, [%1, #16 * 14]   \n"
-        "ldp     q16, q17, [%1, #16 * 16]   \n"
-        "ldp     q18, q19, [%1, #16 * 18]   \n"
-        "ldp     q20, q21, [%1, #16 * 20]   \n"
-        "ldp     q22, q23, [%1, #16 * 22]   \n"
-        "ldp     q24, q25, [%1, #16 * 24]   \n"
-        "ldp     q26, q27, [%1, #16 * 26]   \n"
-        "ldp     q28, q29, [%1, #16 * 28]   \n"
-        "ldp     q30, q31, [%1, #16 * 30]  \n"
-
-        /* FP control and status registers */
-        "ldr     %w0, [%1, #16 * 32]        \n"
-        "msr     fpsr, %0                   \n"
-        "ldr     %w0, [%1, #16 * 32 + 4]    \n"
-        "msr     fpcr, %0                   \n"
-        : "=&r"(temp)
-        : "r"(src)
+        "ldp     q0, q1, [%0, #16 * 0]      \n"
+        "ldp     q2, q3, [%0, #16 * 2]      \n"
+        "ldp     q4, q5, [%0, #16 * 4]      \n"
+        "ldp     q6, q7, [%0, #16 * 6]      \n"
+        "ldp     q8, q9, [%0, #16 * 8]      \n"
+        "ldp     q10, q11, [%0, #16 * 10]   \n"
+        "ldp     q12, q13, [%0, #16 * 12]   \n"
+        "ldp     q14, q15, [%0, #16 * 14]   \n"
+        "ldp     q16, q17, [%0, #16 * 16]   \n"
+        "ldp     q18, q19, [%0, #16 * 18]   \n"
+        "ldp     q20, q21, [%0, #16 * 20]   \n"
+        "ldp     q22, q23, [%0, #16 * 22]   \n"
+        "ldp     q24, q25, [%0, #16 * 24]   \n"
+        "ldp     q26, q27, [%0, #16 * 26]   \n"
+        "ldp     q28, q29, [%0, #16 * 28]   \n"
+        "ldp     q30, q31, [%0, #16 * 30]  \n"
+        :
+        : "r"(src->fpuState)
         : "memory"
     );
+    MSR("fpsr", src->fpsr);
+    MSR("fpcr", src->fpcr);
 }
 
 /* Trap any FPU related instructions to EL2 */
@@ -146,4 +135,3 @@ static inline void disableFpu(void)
     }
     isFPUEnabledCached[CURRENT_CPU_INDEX()] = false;
 }
-

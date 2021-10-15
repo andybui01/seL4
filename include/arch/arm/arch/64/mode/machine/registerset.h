@@ -235,8 +235,6 @@ extern const register_t gpRegisters[];
 #ifdef CONFIG_HAVE_FPU
 typedef struct user_fpu_state {
     uint64_t vregs[64];
-    uint32_t fpsr;
-    uint32_t fpcr;
 } user_fpu_state_t;
 #endif /* CONFIG_HAVE_FPU */
 

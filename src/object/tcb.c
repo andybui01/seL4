@@ -1700,8 +1700,11 @@ exception_t decodeBindFPU(cap_t cap, cte_t *slot)
 
     if (sameObjectAs(fpuCap, fpuSlot->cap) &&
         sameObjectAs(cap, slot->cap)) {
+        // printf("inserting FPU cap into TCB\n");
         cteInsert(fpuCap, fpuSlot, rootSlot);
     }
+
+    tcb->tcbArch.fpu.fpuState = (user_fpu_state_t *) cap_fpu_cap_get_capFPUPtr(fpuCap);
 
     setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
 
