@@ -637,27 +637,27 @@ BOOT_CODE static bool_t create_untypeds_for_region(
     seL4_SlotPos first_untyped_slot
 )
 {
-    word_t align_bits;
-    word_t size_bits;
-
     while (!is_reg_empty(reg)) {
-        /* Determine the maximum size of the region */
-        size_bits = seL4_WordBits - 1 - clzl(reg.end - reg.start);
 
-        /* Determine the alignment of the region */
-        if (reg.start != 0) {
-            align_bits = ctzl(reg.start);
-        } else {
-            align_bits = size_bits;
-        }
-        /* Reduce size bits to align if needed */
-        if (align_bits < size_bits) {
-            size_bits = align_bits;
-        }
+        /* Calculate the bit size of the region. */
+        unsigned int size_bits = seL4_WordBits - 1 - clzl(reg.end - reg.start);
+        /* The size can't exceed the largest possible untyped size. */
         if (size_bits > seL4_MaxUntypedBits) {
             size_bits = seL4_MaxUntypedBits;
         }
-
+        /* The start address 0 satisfies any alignment needs, otherwise ensure
+         * the region's bit size does not exceed the alignment of the region.
+         */
+        if (0 != reg.start) {
+            unsigned int align_bits = ctzl(reg.start);
+            if (size_bits > align_bits) {
+                size_bits = align_bits;
+            }
+        }
+        /* Provide an untyped capability for the region only if it is large
+         * enough to be retyped into objects later. Otherwise the region can't
+         * be used anyway.
+         */
         if (size_bits >= seL4_MinUntypedBits) {
             if (!provide_untyped_cap(root_cnode_cap, device_memory, reg.start, size_bits, first_untyped_slot)) {
                 return false;
@@ -691,13 +691,7 @@ BOOT_CODE bool_t create_untypeds(cap_t root_cnode_cap,
         region_t reg = paddr_to_pptr_reg((p_region_t) {
             start, CONFIG_PADDR_USER_DEVICE_TOP
         });
-        /*
-         * The auto-generated bitfield code will get upset if the
-         * end pptr is larger than the maximum pointer size for this architecture.
-         */
-        if (reg.end > PPTR_TOP) {
-            reg.end = PPTR_TOP;
-        }
+
         if (!create_untypeds_for_region(root_cnode_cap, true, reg, first_untyped_slot)) {
             return false;
         }
@@ -897,9 +891,10 @@ BOOT_CODE bool_t init_freemem(word_t n_available, const p_region_t *available,
     }
 
     /* now try to fit the root server objects into a region */
-    word_t i = ARRAY_SIZE(ndks_boot.freemem) - 1;
+    int i = ARRAY_SIZE(ndks_boot.freemem) - 1;
     if (!is_reg_empty(ndks_boot.freemem[i])) {
-        printf("Insufficient MAX_NUM_FREEMEM_REG\n");
+        printf("ERROR: insufficient MAX_NUM_FREEMEM_REG (%u)\n",
+               (unsigned int)MAX_NUM_FREEMEM_REG);
         return false;
     }
     /* skip any empty regions */
@@ -910,20 +905,50 @@ BOOT_CODE bool_t init_freemem(word_t n_available, const p_region_t *available,
     word_t size = calculate_rootserver_size(it_v_reg, extra_bi_size_bits);
     word_t max = rootserver_max_size_bits(extra_bi_size_bits);
     for (; i >= 0; i--) {
-        word_t next = i + 1;
-        pptr_t start = ROUND_DOWN(ndks_boot.freemem[i].end - size, max);
-        if (start >= ndks_boot.freemem[i].start) {
+        /* Invariant: both i and (i + 1) are valid indices in ndks_boot.freemem. */
+        assert(i < ARRAY_SIZE(ndks_boot.freemem) - 1);
+        /* Invariant; the region at index i is the current candidate.
+         * Invariant: regions 0 up to (i - 1), if any, are additional candidates.
+         * Invariant: region (i + 1) is empty. */
+        assert(is_reg_empty(ndks_boot.freemem[i + 1]));
+        /* Invariant: regions above (i + 1), if any, are empty or too small to use.
+         * Invariant: all non-empty regions are ordered, disjoint and unallocated. */
+
+        /* We make a fresh variable to index the known-empty region, because the
+         * SimplExportAndRefine verification test has poor support for array
+         * indices that are sums of variables and small constants. */
+        int empty_index = i + 1;
+
+        /* Try to take the top-most suitably sized and aligned chunk. */
+        pptr_t unaligned_start = ndks_boot.freemem[i].end - size;
+        pptr_t start = ROUND_DOWN(unaligned_start, max);
+        /* if unaligned_start didn't underflow, and start fits in the region,
+         * then we've found a region that fits the root server objects. */
+        if (unaligned_start <= ndks_boot.freemem[i].end
+            && start >= ndks_boot.freemem[i].start) {
             create_rootserver_objects(start, it_v_reg, extra_bi_size_bits);
-            if (i < ARRAY_SIZE(ndks_boot.freemem)) {
-                ndks_boot.freemem[next].end = ndks_boot.freemem[i].end;
-                ndks_boot.freemem[next].start = start + size;
-            }
+            /* There may be leftovers before and after the memory we used. */
+            /* Shuffle the after leftover up to the empty slot (i + 1). */
+            ndks_boot.freemem[empty_index] = (region_t) {
+                .start = start + size,
+                .end = ndks_boot.freemem[i].end
+            };
+            /* Leave the before leftover in current slot i. */
             ndks_boot.freemem[i].end = start;
-            break;
-        } else if (i < ARRAY_SIZE(ndks_boot.freemem)) {
-            ndks_boot.freemem[next] = ndks_boot.freemem[i];
+            /* Regions i and (i + 1) are now well defined, ordered, disjoint,
+             * and unallocated, so we can return successfully. */
+            return true;
         }
+        /* Region i isn't big enough, so shuffle it up to slot (i + 1),
+         * which we know is unused. */
+        ndks_boot.freemem[empty_index] = ndks_boot.freemem[i];
+        /* Now region i is unused, so make it empty to reestablish the invariant
+         * for the next iteration (when it will be slot i + 1). */
+        ndks_boot.freemem[i] = REG_EMPTY;
     }
 
-    return true;
+    /* We didn't find a big enough region. */
+    printf("ERROR: no free memory region is big enough for root server "
+           "objects, need size/alignment of 2^%"SEL4_PRIu_word"\n", max);
+    return false;
 }
