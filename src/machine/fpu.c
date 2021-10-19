@@ -67,24 +67,18 @@ void switchFpuOwner(user_fpu_state_t *new_owner, word_t cpu)
  * it over. */
 exception_t handleFPUFault(void)
 {
+#if defined(CONFIG_ARCH_AARCH64)
+    /* FPU is enabled by default for all threads that own the FPU, so only
+     * way we can reach here is if a thread is naughty. */
+    fail("Invalid FPU cap");
+    UNREACHABLE();
+#else
     /* If we have already given the FPU to the user, we should not reach here.
      * This should only be able to occur on CPUs without an FPU at all, which
      * we presumably are happy to assume will not be running seL4. */
     assert(!nativeThreadUsingFPU(NODE_STATE(ksCurThread)));
 
     /* Otherwise, lazily switch over the FPU. */
-#if defined(CONFIG_ARCH_AARCH64)
-    /* Check for FPU cap if aarch64 */
-    tcb_t *tcb = NODE_STATE(ksCurThread);
-    cap_t cap = TCB_PTR_CTE_PTR(tcb, tcbFPU)->cap;
-
-    if (cap_get_capType(cap) != cap_fpu_cap) {
-        fail("Bad FPU cap");
-        UNREACHABLE();
-    }
-
-    switchLocalFpuOwner(&tcb->tcbArch.fpu);
-#else
     switchLocalFpuOwner(&NODE_STATE(ksCurThread)->tcbArch.tcbContext.fpuState);
 #endif
 

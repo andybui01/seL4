@@ -50,13 +50,27 @@ static inline bool_t nativeThreadUsingFPU(tcb_t *thread)
 #endif
 }
 
+#ifdef CONFIG_ARCH_AARCH64
+/* TODO: Add support for MAX_RESTORES_SINCE_SWITCH */
+static inline void FORCE_INLINE eagerFPURestore(tcb_t *thread)
+{
+    /* Check if thread has an FPU capability */
+    if (cap_get_capType(TCB_PTR_CTE_PTR(thread, tcbFPU)->cap) != cap_fpu_cap) {
+        disableFpu();
+        return;
+    }
+
+    /* If thread owns FPU permissions, but its state is not loaded, load the state */
+    if (!nativeThreadUsingFPU(thread)) {
+        switchLocalFpuOwner(&thread->tcbArch.fpu);
+    } else {
+        enableFpu();
+    }
+}
+#else
 static inline void FORCE_INLINE lazyFPURestore(tcb_t *thread)
 {
-#ifdef CONFIG_ARCH_AARCH64
-    if (unlikely(NODE_STATE(ksActiveFPU))) {
-#else
     if (unlikely(NODE_STATE(ksActiveFPUState))) {
-#endif
         /* If we have enabled/disabled the FPU too many times without
          * someone else trying to use it, we assume it is no longer
          * in use and switch out its state. */
@@ -78,5 +92,6 @@ static inline void FORCE_INLINE lazyFPURestore(tcb_t *thread)
          * is currently disabled */
     }
 }
+#endif
 
 #endif /* CONFIG_HAVE_FPU */
