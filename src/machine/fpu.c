@@ -20,7 +20,6 @@ void switchLocalFpuOwner(fpu_t *new_owner)
         saveFpuState(NODE_STATE(ksActiveFPU));
     }
     if (new_owner) {
-        NODE_STATE(ksFPURestoresSinceSwitch) = 0;
         loadFpuState(new_owner);
     } else {
         disableFpu();

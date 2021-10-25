@@ -36,12 +36,6 @@ void switchFpuOwner(user_fpu_state_t *new_owner, word_t cpu);
 static inline bool_t nativeThreadUsingFPU(tcb_t *thread)
 {
 #ifdef CONFIG_ARCH_AARCH64
-    /* redundant...? */
-    cap_t cap = TCB_PTR_CTE_PTR(thread, tcbFPU)->cap;
-    if (cap_get_capType(cap) != cap_fpu_cap) {
-        return false;
-    }
-
     return &thread->tcbArch.fpu ==
            NODE_STATE_ON_CORE(ksActiveFPU, thread->tcbAffinity);
 #else
@@ -51,20 +45,22 @@ static inline bool_t nativeThreadUsingFPU(tcb_t *thread)
 }
 
 #ifdef CONFIG_ARCH_AARCH64
-/* TODO: Add support for MAX_RESTORES_SINCE_SWITCH */
 static inline void FORCE_INLINE eagerFPURestore(tcb_t *thread)
 {
     /* Check if thread has an FPU capability */
-    if (cap_get_capType(TCB_PTR_CTE_PTR(thread, tcbFPU)->cap) != cap_fpu_cap) {
-        disableFpu();
+    if ((cap_get_capType(TCB_PTR_CTE_PTR(thread, tcbFPU)->cap) != cap_fpu_cap)) {
+        /* only disable FPU if its enabled */
+        if ((isFPUEnabledCached[CURRENT_CPU_INDEX()])) {
+            disableFpu();
+        }
+
         return;
     }
 
-    /* If thread owns FPU permissions, but its state is not loaded, load the state */
-    if (!nativeThreadUsingFPU(thread)) {
-        switchLocalFpuOwner(&thread->tcbArch.fpu);
-    } else {
+    if (nativeThreadUsingFPU(thread)) {
         enableFpu();
+    } else {
+        switchLocalFpuOwner(&thread->tcbArch.fpu);
     }
 }
 #else

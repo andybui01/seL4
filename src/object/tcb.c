@@ -834,6 +834,8 @@ exception_t decodeTCBInvocation(word_t invLabel, word_t length, cap_t cap,
 #if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
     case TCBBindFPU:
         return decodeBindFPU(cap, slot);
+    case TCBUnbindFPU:
+        return decodeUnbindFPU(cap);
 #endif
 
 #ifdef CONFIG_KERNEL_MCS
@@ -1708,6 +1710,27 @@ exception_t decodeBindFPU(cap_t cap, cte_t *slot)
 
     setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
 
+    return EXCEPTION_NONE;
+}
+
+/* THIS SHIT IS BAD DO NOT RELY ON IT!!!! */
+exception_t decodeUnbindFPU(cap_t cap)
+{
+    tcb_t *tcb;
+
+    tcb = TCB_PTR(cap_thread_cap_get_capTCBPtr(cap));
+
+    if (!tcb->tcbArch.fpu.fpuState) {
+        userError("TCB UnbindFPU: TCB already has no bound FPU.");
+        current_syscall_error.type = seL4_IllegalOperation;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    fpuThreadDelete(tcb);
+    tcb->tcbArch.fpu.fpuState = NULL;
+    cteDelete(TCB_PTR_CTE_PTR(tcb, tcbFPU), true);
+
+    setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
     return EXCEPTION_NONE;
 }
 #endif

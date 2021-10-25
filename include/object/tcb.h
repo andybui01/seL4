@@ -147,6 +147,7 @@ exception_t decodeBindNotification(cap_t cap);
 exception_t decodeUnbindNotification(cap_t cap);
 #if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
 exception_t decodeBindFPU(cap_t cap, cte_t *slot);
+exception_t decodeUnbindFPU(cap_t cap);
 #endif
 #ifdef CONFIG_KERNEL_MCS
 exception_t decodeSetTimeoutEndpoint(cap_t cap, cte_t *slot);

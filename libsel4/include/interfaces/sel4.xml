@@ -322,6 +322,15 @@
             <param dir="in" name="fpu" type="seL4_CPtr" description="FPU to bind."/>
         </method>
 
+        <method id="TCBUnbindFPU" name="UnbindFPU" manual_name="Unbind FPU" manual_label="tcb_unbindfpu" condition="defined(CONFIG_ARCH_AARCH64) &amp;&amp; defined(CONFIG_HAVE_FPU)">
+            <brief>
+                Unbind any FPU object from <obj name="TCB"/>
+            </brief>
+            <description>
+                TODO
+            </description>
+        </method>
+
         <method id="TCBSetAffinity" name="SetAffinity" condition="(!defined CONFIG_KERNEL_MCS) &amp;&amp; CONFIG_MAX_NUM_NODES > 1" manual_name="Set CPU Affinity" manual_label="tcb_setaffinity">
             <brief>
                 Change a thread's current CPU in multicore machine
