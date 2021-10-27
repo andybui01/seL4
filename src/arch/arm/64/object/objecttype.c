@@ -110,6 +110,10 @@ deriveCap_ret_t Arch_deriveCap(cte_t *slot, cap_t cap)
         return ret;
 #endif
 #ifdef CONFIG_HAVE_FPU
+    case cap_fpu_control_cap:
+        ret.cap = cap_null_cap_new();
+        ret.status = EXCEPTION_NONE;
+        return ret;
     case cap_fpu_cap:
         ret.cap = cap;
         ret.status = EXCEPTION_NONE;
@@ -331,7 +335,12 @@ bool_t CONST Arch_sameRegionAs(cap_t cap_a, cap_t cap_b)
         }
         break;
 #endif
-#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
+#ifdef CONFIG_HAVE_FPU
+    case cap_fpu_control_cap:
+        if (cap_get_capType(cap_b) == cap_fpu_control_cap) {
+            return true;
+        }
+        break;
     case cap_fpu_cap:
         if (cap_get_capType(cap_b) == cap_fpu_cap) {
             return cap_fpu_cap_get_capFPUPtr(cap_a) ==
@@ -392,8 +401,8 @@ word_t Arch_getObjectSize(word_t t)
         return VCPU_SIZE_BITS;
 #endif
 #ifdef CONFIG_HAVE_FPU
-        case seL4_ARM_FPUObject:
-            return seL4_FPUBits;
+    case seL4_ARM_FPUObject:
+        return seL4_FPUBits;
 #endif
     default:
         fail("Invalid object type");
@@ -518,6 +527,10 @@ exception_t Arch_decodeInvocation(word_t label, word_t length, cptr_t cptr,
     case cap_cb_cap:
         return decodeARMCBInvocation(label, length, cptr, slot, cap, call, buffer);
 #endif /*CONFIG_ARM_SMMU*/
+#ifdef CONFIG_HAVE_FPU
+    case cap_fpu_control_cap:
+        return decodeFPUControlInvocation(label, length, slot, buffer);
+#endif
     default:
 #else
 {

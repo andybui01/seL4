@@ -20,14 +20,21 @@ base 64(48,1)
 
 ---- ARM-specific caps
 
-block fpu_cap {
+block fpu_control_cap {
     padding                          64
+
+    field capType                    5
+    padding                          59
+}
+
+block fpu_cap {
+    padding                          16
+    field_high capBoundTCBPtr        48
 
     field capType                    5
     padding                          11
     field_high capFPUPtr             48
 }
-
 
 block frame_cap {
     field capFMappedASID             16
@@ -199,7 +206,8 @@ tagged_union cap capType {
     tag cb_control_cap              21
     tag cb_cap                      23
 #endif
-    tag fpu_cap                     25
+    tag fpu_control_cap             25
+    tag fpu_cap                     27
 }
 
 ---- Arch-independent object types

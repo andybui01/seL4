@@ -34,7 +34,7 @@ static inline void saveFpuState(fpu_t *dest)
         "stp     q28, q29, [%0, #16 * 28]   \n"
         "stp     q30, q31, [%0, #16 * 30]   \n"
         :
-        : "r"(dest->fpuState)
+        : "r"(dest->fpuContext)
         : "memory"
     );
     MRS("fpsr", dest->fpsr);
@@ -63,7 +63,7 @@ static inline void loadFpuState(fpu_t *src)
         "ldp     q28, q29, [%0, #16 * 28]   \n"
         "ldp     q30, q31, [%0, #16 * 30]  \n"
         :
-        : "r"(src->fpuState)
+        : "r"(src->fpuContext)
         : "memory"
     );
     MSR("fpsr", src->fpsr);

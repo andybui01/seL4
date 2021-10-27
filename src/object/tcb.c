@@ -1671,49 +1671,45 @@ exception_t decodeBindFPU(cap_t cap, cte_t *slot)
     cap_t fpuCap;
     deriveCap_ret_t dc_ret;
 
-    if (current_extra_caps.excaprefs[0] == NULL) {
+    fpuControlSlot = current_extra_caps.excaprefs[0];
+    fpuControlCap = fpuControlSlot->cap;
+
+    fpuSlot = current_extra_caps.excaprefs[1];
+    fpuCap = fpuSlot->cap;
+
+    if (fpuControlSlot == NULL || fpuSlot == NULL) {
         userError("TCB BindFPU: Truncated message.");
         current_syscall_error.type = seL4_TruncatedMessage;
         return EXCEPTION_SYSCALL_ERROR;
     }
 
-    fpuSlot = current_extra_caps.excaprefs[0];
-    fpuCap = current_extra_caps.excaprefs[0]->cap;
-
-    dc_ret = deriveCap(fpuSlot, fpuCap);
-    if (dc_ret.status != EXCEPTION_NONE) {
-        return dc_ret.status;
-    }
-    fpuCap = dc_ret.cap;
-
-    if (cap_get_capType(fpuCap) != cap_fpu_cap) {
-        userError("TCB BindFPU: Invalid CNode cap.");
+    if (cap_get_capType(fpuControlCap) != cap_fpu_control_cap) {
+        userError("TCB BindFPU: Invalid FPU control cap.");
         current_syscall_error.type = seL4_IllegalOperation;
         return EXCEPTION_SYSCALL_ERROR;
     }
 
-    cte_t *rootSlot;
-    rootSlot = TCB_PTR_CTE_PTR(tcb, tcbFPU);
-
-    int err = cteDelete(rootSlot, true);
-    if (err != EXCEPTION_NONE) {
-        return err;
+    if (cap_get_capType(fpuCap) != cap_fpu_cap) {
+        userError("TCB BindFPU: Invalid FPU cap.");
+        current_syscall_error.type = seL4_IllegalOperation;
+        return EXCEPTION_SYSCALL_ERROR;
     }
 
-    if (sameObjectAs(fpuCap, fpuSlot->cap) &&
-        sameObjectAs(cap, slot->cap)) {
-        // printf("inserting FPU cap into TCB\n");
-        cteInsert(fpuCap, fpuSlot, rootSlot);
+    if ((tcb_t *) cap_fpu_cap_get_capBoundTCBPtr(fpuCap)) {
+        userError("TCB BindFPU: FPU cannot be bound.");
+        current_syscall_error.type = seL4_IllegalOperation;
+        return EXCEPTION_SYSCALL_ERROR;
     }
 
-    tcb->tcbArch.fpu.fpuState = (user_fpu_state_t *) cap_fpu_cap_get_capFPUPtr(fpuCap);
+    /* Do the binding */
+    tcb->tcbArch.fpu.fpuContext = (fpu_context_t *) cap_fpu_cap_get_capFPUPtr(fpuCap);
+    cap_fpu_cap_set_capBoundTCBPtr(fpuCap, TCB_REF(tcb));
 
     setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
 
     return EXCEPTION_NONE;
 }
 
-/* THIS SHIT IS BAD DO NOT RELY ON IT!!!! */
 exception_t decodeUnbindFPU(cap_t cap)
 {
     tcb_t *tcb;
@@ -1727,8 +1723,7 @@ exception_t decodeUnbindFPU(cap_t cap)
     }
 
     fpuThreadDelete(tcb);
-    tcb->tcbArch.fpu.fpuState = NULL;
-    cteDelete(TCB_PTR_CTE_PTR(tcb, tcbFPU), true);
+    tcb->tcbArch.fpu.fpuContext = NULL;
 
     setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
     return EXCEPTION_NONE;

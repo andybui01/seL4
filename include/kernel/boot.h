@@ -85,18 +85,6 @@ create_it_pd_pts(
     vptr_t     bi_frame_vptr
 );
 
-#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
-tcb_t *
-create_initial_thread(
-    cap_t  root_cnode_cap,
-    cap_t  it_pd_cap,
-    vptr_t ui_v_entry,
-    vptr_t bi_frame_vptr,
-    vptr_t ipcbuf_vptr,
-    cap_t  ipcbuf_cap,
-    cap_t  it_fpu_cap
-);
-#else
 tcb_t *
 create_initial_thread(
     cap_t  root_cnode_cap,
@@ -106,7 +94,6 @@ create_initial_thread(
     vptr_t ipcbuf_vptr,
     cap_t  ipcbuf_cap
 );
-#endif
 
 void init_core_state(tcb_t *scheduler_action);
 

@@ -18,7 +18,7 @@
 
 #ifdef CONFIG_HAVE_FPU
 typedef struct fpu {
-    user_fpu_state_t *fpuState;
+    fpu_context_t *fpuContext;
     uint32_t fpsr;
     uint32_t fpcr;
 } fpu_t;
@@ -166,6 +166,12 @@ static inline word_t CONST cap_get_archCapSizeBits(cap_t cap)
     case cap_vcpu_cap:
         return seL4_VCPUBits;
 #endif
+#ifdef CONFIG_HAVE_FPU
+    case cap_fpu_control_cap:
+        return 0;
+    case cap_fpu_cap:
+        return seL4_FPUBits;
+#endif
 
     default:
         /* Unreachable, but GCC can't figure that out */
@@ -207,6 +213,14 @@ static inline bool_t CONST cap_get_archCapIsPhysical(cap_t cap)
         return true;
 #endif
 
+#ifdef CONFIG_HAVE_FPU
+    case cap_fpu_control_cap:
+        return false;
+
+    case cap_fpu_cap:
+        return true;
+#endif
+
     default:
         /* Unreachable, but GCC can't figure that out */
         return false;
@@ -244,6 +258,14 @@ static inline void *CONST cap_get_archCapPtr(cap_t cap)
 #ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
     case cap_vcpu_cap:
         return VCPU_PTR(cap_vcpu_cap_get_capVCPUPtr(cap));
+#endif
+
+#ifdef CONFIG_HAVE_FPU
+    case cap_fpu_control_cap:
+        return NULL;
+
+    case cap_fpu_cap:
+        return FPU_PTR(cap_fpu_cap_get_capFPUPtr(cap));
 #endif
 
     default:

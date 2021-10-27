@@ -233,9 +233,9 @@ extern const register_t frameRegisters[];
 extern const register_t gpRegisters[];
 
 #ifdef CONFIG_HAVE_FPU
-typedef struct user_fpu_state {
+typedef struct fpu_context {
     uint64_t vregs[64];
-} user_fpu_state_t;
+} fpu_context_t;
 #endif /* CONFIG_HAVE_FPU */
 
 /* ARM user-code context: size = 72 bytes

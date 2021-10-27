@@ -770,6 +770,11 @@ exception_t decodeInvocation(word_t invLabel, word_t length,
         }
         return decodeSchedContextInvocation(invLabel, cap, buffer);
 #endif
+
+#ifdef CONFIG_HAVE_FPU
+    case cap_fpu_control_cap:
+        return decodeFPUControlInvocation(invLabel, length, slot, buffer);
+#endif
     default:
         fail("Invalid cap type");
     }

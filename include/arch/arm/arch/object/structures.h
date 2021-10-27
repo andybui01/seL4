@@ -16,7 +16,7 @@ static inline bool_t CONST Arch_isCapRevocable(cap_t derivedCap, cap_t srcCap)
     switch (cap_get_capType(derivedCap)) {
         case cap_fpu_cap:
             return cap_get_capType(srcCap) ==
-                   cap_fpu_cap;
+                   cap_fpu_control_cap;
         default:
             return false;
     }

@@ -319,6 +319,7 @@
             <description>
                 TODO
             </description>
+            <param dir="in" name="fpu_control" type="seL4_CPtr" description="FPU control."/>
             <param dir="in" name="fpu" type="seL4_CPtr" description="FPU to bind."/>
         </method>
 

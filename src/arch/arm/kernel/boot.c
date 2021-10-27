@@ -324,7 +324,6 @@ static BOOT_CODE bool_t try_init_kernel(
     cap_t it_ap_cap;
     cap_t it_pd_cap;
     cap_t ipcbuf_cap;
-    cap_t it_fpu_cap;
     p_region_t ui_p_reg = (p_region_t) {
         ui_p_reg_start, ui_p_reg_end
     };
@@ -536,7 +535,8 @@ static BOOT_CODE bool_t try_init_kernel(
     write_it_asid_pool(it_ap_cap, it_pd_cap);
 
 #if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
-    it_fpu_cap = create_it_fpu(root_cnode_cap);
+    /* provide the FPU control cap */
+    write_slot(SLOT_PTR(pptr_of_cap(root_cnode_cap), seL4_CapFPUControl), cap_fpu_control_cap_new());
 #endif
 
 #ifdef CONFIG_KERNEL_MCS
@@ -556,17 +556,6 @@ static BOOT_CODE bool_t try_init_kernel(
     cleanInvalidateL1Caches();
 
     /* create the initial thread */
-#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
-    tcb_t *initial = create_initial_thread(
-                         root_cnode_cap,
-                         it_pd_cap,
-                         v_entry,
-                         bi_frame_vptr,
-                         ipcbuf_vptr,
-                         ipcbuf_cap,
-                         it_fpu_cap
-                     );
-#else
     tcb_t *initial = create_initial_thread(
                          root_cnode_cap,
                          it_pd_cap,
@@ -575,7 +564,6 @@ static BOOT_CODE bool_t try_init_kernel(
                          ipcbuf_vptr,
                          ipcbuf_cap
                      );
-#endif
 
     if (initial == NULL) {
         printf("ERROR: could not create initial thread\n");
