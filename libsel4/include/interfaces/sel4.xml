@@ -319,7 +319,6 @@
             <description>
                 TODO
             </description>
-            <param dir="in" name="fpu_control" type="seL4_CPtr" description="FPU control."/>
             <param dir="in" name="fpu" type="seL4_CPtr" description="FPU to bind."/>
         </method>
 
@@ -611,6 +610,29 @@
             <param dir="in" name="root" type="seL4_CNode" description="CPTR to the CNode that forms the root of the destination CSpace. Must be at a depth equivalent to the wordsize."/>
             <param dir="in" name="index" type="seL4_Word" description="CPTR to the destination slot. Resolved from the root of the destination CSpace."/>
             <param dir="in" name="depth" type="seL4_Uint8" description="Number of bits of dest_index to resolve to find the destination slot."/>
+        </method>
+
+    </interface>
+
+    <interface name="seL4_FPUControl" manual_name="FPU Control" cap_description="An FPUControl capability. This gives you the authority to make this call.">
+
+        <method id="FPUIssueFPUObject" name="Get" manual_name="Get">
+            <brief>
+                Create an FPU object
+            </brief>
+            <description>
+                Together with a capability to <texttt text="Untyped Memory"/>, which is passed as an argument,
+                create an <taexttt text="FPU object"/>. The untyped capability must represent a
+                2^seL4_FPUBits sized memory object.
+            </description>
+            <param dir="in" name="untyped" type="seL4_Untyped"
+            description="Capability to an untyped memory object that will become the pool. Must be the size of an FPU object."/>
+            <param dir="in" name="root" type="seL4_CNode"
+            description="CPTR to the CNode that forms the root of the destination CSpace. Must be at a depth equivalent to the wordsize."/>
+            <param dir="in" name="index" type="seL4_Word"
+            description="CPTR to the destination slot. Resolved from the root of the destination CSpace."/>
+            <param dir="in" name="depth" type="seL4_Uint8"
+            description="Number of bits of index to resolve to find the destination slot."/>
         </method>
 
     </interface>

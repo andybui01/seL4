@@ -1669,23 +1669,13 @@ exception_t decodeBindFPU(cap_t cap, cte_t *slot)
 
     cte_t *fpuSlot;
     cap_t fpuCap;
-    deriveCap_ret_t dc_ret;
 
-    fpuControlSlot = current_extra_caps.excaprefs[0];
-    fpuControlCap = fpuControlSlot->cap;
-
-    fpuSlot = current_extra_caps.excaprefs[1];
+    fpuSlot = current_extra_caps.excaprefs[0];
     fpuCap = fpuSlot->cap;
 
-    if (fpuControlSlot == NULL || fpuSlot == NULL) {
+    if (fpuSlot == NULL) {
         userError("TCB BindFPU: Truncated message.");
         current_syscall_error.type = seL4_TruncatedMessage;
-        return EXCEPTION_SYSCALL_ERROR;
-    }
-
-    if (cap_get_capType(fpuControlCap) != cap_fpu_control_cap) {
-        userError("TCB BindFPU: Invalid FPU control cap.");
-        current_syscall_error.type = seL4_IllegalOperation;
         return EXCEPTION_SYSCALL_ERROR;
     }
 
@@ -1703,7 +1693,7 @@ exception_t decodeBindFPU(cap_t cap, cte_t *slot)
 
     /* Do the binding */
     tcb->tcbArch.fpu.fpuContext = (fpu_context_t *) cap_fpu_cap_get_capFPUPtr(fpuCap);
-    cap_fpu_cap_set_capBoundTCBPtr(fpuCap, TCB_REF(tcb));
+    fpuSlot->cap = cap_fpu_cap_set_capBoundTCBPtr(fpuCap, TCB_REF(tcb));
 
     setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
 
@@ -1716,7 +1706,7 @@ exception_t decodeUnbindFPU(cap_t cap)
 
     tcb = TCB_PTR(cap_thread_cap_get_capTCBPtr(cap));
 
-    if (!tcb->tcbArch.fpu.fpuState) {
+    if (!tcb->tcbArch.fpu.fpuContext) {
         userError("TCB UnbindFPU: TCB already has no bound FPU.");
         current_syscall_error.type = seL4_IllegalOperation;
         return EXCEPTION_SYSCALL_ERROR;

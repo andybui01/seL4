@@ -188,6 +188,9 @@ tagged_union cap capType {
     tag sched_context_cap           22
     tag sched_control_cap           24
 #endif
+#ifdef CONFIG_HAVE_FPU
+    tag fpu_control_cap             26
+#endif
 
     -- 5-bit tag arch caps
     tag frame_cap                   1
@@ -206,8 +209,7 @@ tagged_union cap capType {
     tag cb_control_cap              21
     tag cb_cap                      23
 #endif
-    tag fpu_control_cap             25
-    tag fpu_cap                     27
+    tag fpu_cap                     25
 }
 
 ---- Arch-independent object types

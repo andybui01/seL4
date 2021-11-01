@@ -10,6 +10,7 @@
 #include <arch/machine/registerset.h>
 #include <api/syscall.h>
 #include <machine/fpu.h>
+#include <machine/io.h>
 
 #include <sel4/benchmark_track_types.h>
 #include <benchmark/benchmark_track.h>
@@ -55,6 +56,7 @@ void VISIBLE NORETURN c_handle_undefined_instruction(void)
 void VISIBLE NORETURN c_handle_enfp(void)
 {
     c_entry_hook();
+    // printf("enfp\n");
 
     handleFPUFault();
     /* UNREACHABLE if we're using eager FPU... */

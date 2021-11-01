@@ -21,6 +21,9 @@
 #include <object/schedcontext.h>
 #include <object/schedcontrol.h>
 #endif
+#ifdef CONFIG_HAVE_FPU
+#include <object/fpu.h>
+#endif
 #include <object/tcb.h>
 #include <object/untyped.h>
 #include <model/statedata.h>
@@ -770,7 +773,6 @@ exception_t decodeInvocation(word_t invLabel, word_t length,
         }
         return decodeSchedContextInvocation(invLabel, cap, buffer);
 #endif
-
 #ifdef CONFIG_HAVE_FPU
     case cap_fpu_control_cap:
         return decodeFPUControlInvocation(invLabel, length, slot, buffer);

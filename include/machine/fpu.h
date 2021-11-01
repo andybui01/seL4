@@ -10,6 +10,7 @@
 #include <object/structures.h>
 #include <model/statedata.h>
 #include <arch/machine/fpu.h>
+#include <machine/io.h>
 
 #ifdef CONFIG_HAVE_FPU
 
@@ -48,20 +49,23 @@ static inline bool_t nativeThreadUsingFPU(tcb_t *thread)
 static inline void FORCE_INLINE eagerFPURestore(tcb_t *thread)
 {
     /* Check if thread has an FPU capability */
-    if ((cap_get_capType(TCB_PTR_CTE_PTR(thread, tcbFPU)->cap) != cap_fpu_cap)) {
+    if (!thread->tcbArch.fpu.fpuContext) {
         /* only disable FPU if its enabled */
         if ((isFPUEnabledCached[CURRENT_CPU_INDEX()])) {
-            disableFpu();
-        }
+                // printf("Bang\n");
+                disableFpu();
+            }
 
         return;
     }
 
+    // printf("skrt\n");
     if (nativeThreadUsingFPU(thread)) {
         enableFpu();
     } else {
         switchLocalFpuOwner(&thread->tcbArch.fpu);
     }
+
 }
 #else
 static inline void FORCE_INLINE lazyFPURestore(tcb_t *thread)

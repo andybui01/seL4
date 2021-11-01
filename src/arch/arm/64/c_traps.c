@@ -11,6 +11,7 @@
 #include <api/syscall.h>
 #include <linker.h>
 #include <machine/fpu.h>
+#include <machine/io.h>
 
 #include <benchmark/benchmark_track.h>
 #include <benchmark/benchmark_utilisation.h>
