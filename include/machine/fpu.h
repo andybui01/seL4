@@ -51,15 +51,20 @@ static inline void FORCE_INLINE eagerFPURestore(tcb_t *thread)
     if ((cap_get_capType(TCB_PTR_CTE_PTR(thread, tcbFPU)->cap) != cap_fpu_cap)) {
         /* only disable FPU if its enabled */
         if ((isFPUEnabledCached[CURRENT_CPU_INDEX()])) {
+            /* ID: 3/4r */
             disableFpu();
+        } else {
+            /* 1 */
         }
 
         return;
     }
 
     if (nativeThreadUsingFPU(thread)) {
+        /* ID: 3r/4 */
         enableFpu();
     } else {
+        /* ID: 2 */
         switchLocalFpuOwner(&thread->tcbArch.fpu);
     }
 }
