@@ -8,7 +8,6 @@
 
 #include <autoconf.h>
 
-/* Cortex A7 manual, table 10-2 */
 #define seL4_NumHWBreakpoints (10)
 #define seL4_NumExclusiveBreakpoints (6)
 #define seL4_NumExclusiveWatchpoints (4)
@@ -17,9 +16,9 @@
 #define seL4_NumDualFunctionMonitors (0)
 #endif
 
-/* First address in the virtual address space that is not accessible to user level */
-
 #if CONFIG_WORD_SIZE == 32
-
-#define seL4_UserTop CONFIG_USER_TOP
+/* First address in the virtual address space that is not accessible to user level */
+#define seL4_UserTop 0xe0000000
+#else
+/* otherwise this is defined at the arch level */
 #endif
