@@ -36,12 +36,6 @@ void switchFpuOwner(user_fpu_state_t *new_owner, word_t cpu);
 static inline bool_t nativeThreadUsingFPU(tcb_t *thread)
 {
 #ifdef CONFIG_ARCH_AARCH64
-    /* redundant...? */
-    cap_t cap = TCB_PTR_CTE_PTR(thread, tcbFPU)->cap;
-    if (cap_get_capType(cap) != cap_fpu_cap) {
-        return false;
-    }
-
     return &thread->tcbArch.fpu ==
            NODE_STATE_ON_CORE(ksActiveFPU, thread->tcbAffinity);
 #else
