@@ -11,16 +11,32 @@
 #include <util.h>
 #include <api/types.h>
 #include <sel4/macros.h>
+#include <object/structures.h>
 #include <arch/types.h>
 #include <arch/object/structures_gen.h>
 #include <arch/machine/hardware.h>
 #include <arch/machine/registerset.h>
 
+
 #ifdef CONFIG_HAVE_FPU
-typedef struct fpu {
-    user_fpu_state_t *fpuState;
+/* Underlying struct for the FPU object */
+typedef struct user_fpu_state {
+    uint64_t vregs[62];
+
+    /* Status and control registers */
     uint32_t fpsr;
     uint32_t fpcr;
+
+    struct tcb *fpuBoundTCB;
+} user_fpu_state_t;
+
+compile_assert(fpu_object_size_correct, sizeof(user_fpu_state_t) == BIT(seL4_FPUBits));
+
+typedef struct fpu {
+    user_fpu_state_t *fpuState;
+
+    /* The last vreg, which we took out to add a TCB pointer */
+    uint64_t last_vregs[2];
 } fpu_t;
 #endif
 
@@ -28,7 +44,7 @@ typedef struct arch_tcb {
     /* 37 words */
     user_context_t tcbContext;
 
-    /* 2 words */
+    /* 3 words */
     fpu_t fpu;
 #ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
     struct vcpu *tcbVCPU;

@@ -66,7 +66,6 @@ static inline void FORCE_INLINE eagerFPURestore(tcb_t *thread)
     } else {
         /* ID: 2 */
         switchLocalFpuOwner(&thread->tcbArch.fpu);
-    }
 }
 #else
 static inline void FORCE_INLINE lazyFPURestore(tcb_t *thread)

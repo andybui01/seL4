@@ -82,6 +82,7 @@
 #include <util.h>
 #include <arch/types.h>
 #include <sel4/plat/api/constants.h>
+#include <object/structures.h>
 
 /* These are the indices of the registers in the saved thread context.
  * The values are determined by the order in which they're saved in the trap handler. */
@@ -231,12 +232,6 @@ enum messageSizes {
 extern const register_t msgRegisters[];
 extern const register_t frameRegisters[];
 extern const register_t gpRegisters[];
-
-#ifdef CONFIG_HAVE_FPU
-typedef struct user_fpu_state {
-    uint64_t vregs[64];
-} user_fpu_state_t;
-#endif /* CONFIG_HAVE_FPU */
 
 /* ARM user-code context: size = 72 bytes
  * Or with hardware debug support built in:
