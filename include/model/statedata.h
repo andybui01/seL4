@@ -74,7 +74,7 @@ NODE_STATE_DECLARE(sched_context_t, *ksCurSC);
 #ifdef CONFIG_HAVE_FPU
 /* Current state installed in the FPU, or NULL if the FPU is currently invalid */
 #ifdef CONFIG_ARCH_AARCH64
-NODE_STATE_DECLARE(fpu_t *, ksActiveFPU);
+NODE_STATE_DECLARE(tcb_fpu_t *, ksActiveFPU);
 #else
 NODE_STATE_DECLARE(user_fpu_state_t *, ksActiveFPUState);
 #endif

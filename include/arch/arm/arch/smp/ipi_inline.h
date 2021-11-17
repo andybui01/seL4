@@ -16,10 +16,17 @@ static inline void doRemoteStall(word_t cpu)
 }
 
 #ifdef CONFIG_HAVE_FPU
-static inline void doRemoteswitchFpuOwner(fpu_t *new_owner, word_t cpu)
+#ifdef CONFIG_ARCH_AARCH64
+static inline void doRemoteswitchFpuOwner(tcb_fpu_t *new_owner, word_t cpu)
 {
     doRemoteOp1Arg(IpiRemoteCall_switchFpuOwner, (word_t)new_owner, cpu);
 }
+#else
+static inline void doRemoteswitchFpuOwner(user_fpu_state_t *new_owner, word_t cpu)
+{
+    doRemoteOp1Arg(IpiRemoteCall_switchFpuOwner, (word_t)new_owner, cpu);
+}
+#endif /* CONFIG_ARCH_AARCH64 */
 #endif /* CONFIG_HAVE_FPU */
 
 static inline void doRemoteInvalidateTranslationSingle(vptr_t vptr, word_t mask)

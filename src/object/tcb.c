@@ -11,6 +11,7 @@
 #include <api/syscall.h>
 #include <sel4/shared_types.h>
 #include <machine/io.h>
+#include <machine/fpu.h>
 #include <object/structures.h>
 #include <object/objecttype.h>
 #include <object/cnode.h>
@@ -1664,12 +1665,9 @@ exception_t decodeUnbindNotification(cap_t cap)
 exception_t decodeBindFPU(cap_t cap, cte_t *slot)
 {
     tcb_t *tcb;
+    cap_t fpuCap;
 
     tcb = TCB_PTR(cap_thread_cap_get_capTCBPtr(cap));
-
-    cte_t *fpuSlot;
-    cap_t fpuCap;
-    deriveCap_ret_t dc_ret;
 
     if (current_extra_caps.excaprefs[0] == NULL) {
         userError("TCB BindFPU: Truncated message.");
@@ -1677,14 +1675,7 @@ exception_t decodeBindFPU(cap_t cap, cte_t *slot)
         return EXCEPTION_SYSCALL_ERROR;
     }
 
-    fpuSlot = current_extra_caps.excaprefs[0];
     fpuCap = current_extra_caps.excaprefs[0]->cap;
-
-    dc_ret = deriveCap(fpuSlot, fpuCap);
-    if (dc_ret.status != EXCEPTION_NONE) {
-        return dc_ret.status;
-    }
-    fpuCap = dc_ret.cap;
 
     if (cap_get_capType(fpuCap) != cap_fpu_cap) {
         userError("TCB BindFPU: Invalid CNode cap.");
@@ -1692,45 +1683,30 @@ exception_t decodeBindFPU(cap_t cap, cte_t *slot)
         return EXCEPTION_SYSCALL_ERROR;
     }
 
-    cte_t *rootSlot;
-    rootSlot = TCB_PTR_CTE_PTR(tcb, tcbFPU);
-
-    int err = cteDelete(rootSlot, true);
-    if (err != EXCEPTION_NONE) {
-        return err;
-    }
-
-    if (sameObjectAs(fpuCap, fpuSlot->cap) &&
-        sameObjectAs(cap, slot->cap)) {
-        // printf("inserting FPU cap into TCB\n");
-        cteInsert(fpuCap, fpuSlot, rootSlot);
-    }
-
-    tcb->tcbArch.fpu.fpuState = (user_fpu_state_t *) cap_fpu_cap_get_capFPUPtr(fpuCap);
-
     setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
+
+    bindFPU(tcb, (fpu_t *) cap_fpu_cap_get_capFPUPtr(fpuCap));
 
     return EXCEPTION_NONE;
 }
 
-/* THIS SHIT IS BAD DO NOT RELY ON IT!!!! */
 exception_t decodeUnbindFPU(cap_t cap)
 {
     tcb_t *tcb;
 
     tcb = TCB_PTR(cap_thread_cap_get_capTCBPtr(cap));
 
-    if (!tcb->tcbArch.fpu.fpuState) {
-        userError("TCB UnbindFPU: TCB already has no bound FPU.");
+    if (!tcb->tcbArch.tcbFPU.tcbBoundFPU) {
+        userError("TCB UnbindFPU: has no bound FPU.");
         current_syscall_error.type = seL4_IllegalOperation;
         return EXCEPTION_SYSCALL_ERROR;
     }
 
-    fpuThreadDelete(tcb);
-    tcb->tcbArch.fpu.fpuState = NULL;
-    cteDelete(TCB_PTR_CTE_PTR(tcb, tcbFPU), true);
-
     setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
+
+    fpuThreadDelete(tcb);
+    unbindFPU(tcb);
+
     return EXCEPTION_NONE;
 }
 #endif

@@ -13,7 +13,7 @@ extern bool_t isFPUEnabledCached[CONFIG_MAX_NUM_NODES];
 
 #ifdef CONFIG_HAVE_FPU
 /* Store state in the FPU registers into memory. */
-static inline void saveFpuState(fpu_t *dest)
+static inline void saveFpuState(tcb_fpu_t *dest)
 {
     word_t temp;
     asm volatile(
@@ -34,7 +34,7 @@ static inline void saveFpuState(fpu_t *dest)
         "stp     q26, q27, [%1, #16 * 26]   \n"
         "stp     q28, q29, [%1, #16 * 28]   \n"
 
-        /* Use the vregs stored in the fpu_t object */
+        /* Use the vregs stored in the tcb_fpu_t object */
         "stp     q30, q31, [%2, #0]   \n"
 
         /* Status and control registers */
@@ -44,13 +44,13 @@ static inline void saveFpuState(fpu_t *dest)
         "str     %w0, [%1, #16 * 30 + 4]    \n"
 
         : "=&r"(temp)
-        : "r"(dest->fpuState), "r"(dest->last_vregs)
+        : "r"(dest->tcbBoundFPU), "r"(dest->last_vregs)
         : "memory"
     );
 }
 
 /* Load FPU state from memory into the FPU registers. */
-static inline void loadFpuState(fpu_t *src)
+static inline void loadFpuState(tcb_fpu_t *src)
 {
     word_t temp;
     asm volatile(
@@ -71,7 +71,7 @@ static inline void loadFpuState(fpu_t *src)
         "ldp     q26, q27, [%1, #16 * 26]   \n"
         "ldp     q28, q29, [%1, #16 * 28]   \n"
 
-        /* Use the vregs stored in the fpu_t object */
+        /* Use the vregs stored in the tcb_fpu_t object */
         "ldp     q30, q31, [%2, #0]  \n"
 
         /* FP control and status registers */
@@ -80,7 +80,7 @@ static inline void loadFpuState(fpu_t *src)
         "ldr     %w0, [%1, #16 * 30 + 4]    \n"
         "msr     fpcr, %0                   \n"
         : "=&r"(temp)
-        : "r"(src->fpuState), "r"(src->last_vregs)
+        : "r"(src->tcbBoundFPU), "r"(src->last_vregs)
         : "memory"
     );
 }

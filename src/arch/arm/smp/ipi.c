@@ -39,7 +39,11 @@ static void handleRemoteCall(IpiModeRemoteCall_t call, word_t arg0,
 
 #ifdef CONFIG_HAVE_FPU
         case IpiRemoteCall_switchFpuOwner:
-            switchLocalFpuOwner((fpu_t *)arg0);
+#ifdef CONFIG_ARCH_AARCH64
+            switchLocalFpuOwner((tcb_fpu_t *)arg0);
+#else
+            switchLocalFpuOwner((user_fpu_state_t *)arg0);
+#endif /* CONFIG_ARCH_AARCH64 */
             break;
 #endif /* CONFIG_HAVE_FPU */
 

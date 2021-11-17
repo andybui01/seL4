@@ -13,7 +13,7 @@
 #ifdef CONFIG_HAVE_FPU
 /* Switch the owner of the FPU to the given thread on local core. */
 #ifdef CONFIG_ARCH_AARCH64
-void switchLocalFpuOwner(fpu_t *new_owner)
+void switchLocalFpuOwner(tcb_fpu_t *new_owner)
 {
     enableFpu();
     if (NODE_STATE(ksActiveFPU)) {
@@ -44,7 +44,7 @@ void switchLocalFpuOwner(user_fpu_state_t *new_owner)
 #endif
 
 #ifdef CONFIG_ARCH_AARCH64
-void switchFpuOwner(fpu_t *new_owner, word_t cpu)
+void switchFpuOwner(tcb_fpu_t *new_owner, word_t cpu)
 #else
 void switchFpuOwner(user_fpu_state_t *new_owner, word_t cpu)
 #endif

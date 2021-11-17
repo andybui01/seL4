@@ -44,7 +44,7 @@ UP_STATE_DEFINE(tcb_t *, ksSchedulerAction);
 #ifdef CONFIG_HAVE_FPU
 /* Currently active FPU state, or NULL if there is no active FPU state */
 #ifdef CONFIG_ARCH_AARCH64
-UP_STATE_DEFINE(fpu_t *, ksActiveFPU);
+UP_STATE_DEFINE(tcb_fpu_t *, ksActiveFPU);
 #else
 UP_STATE_DEFINE(user_fpu_state_t *, ksActiveFPUState);
 #endif

@@ -20,54 +20,67 @@ void fpuThreadDelete(tcb_t *thread);
 exception_t handleFPUFault(void);
 
 #ifdef CONFIG_ARCH_AARCH64
-void switchLocalFpuOwner(fpu_t *new_owner);
-#else
-void switchLocalFpuOwner(user_fpu_state_t *new_owner);
-#endif
+
+void switchLocalFpuOwner(tcb_fpu_t *new_owner);
 
 /* Switch the current owner of the FPU state on the core specified by 'cpu'. */
-#ifdef CONFIG_ARCH_AARCH64
-void switchFpuOwner(fpu_t *new_owner, word_t cpu);
-#else
-void switchFpuOwner(user_fpu_state_t *new_owner, word_t cpu);
-#endif
+void switchFpuOwner(tcb_fpu_t *new_owner, word_t cpu);
 
 /* Returns whether or not the passed thread is using the current active fpu state */
 static inline bool_t nativeThreadUsingFPU(tcb_t *thread)
 {
-#ifdef CONFIG_ARCH_AARCH64
-    return &thread->tcbArch.fpu ==
+    return &thread->tcbArch.tcbFPU ==
            NODE_STATE_ON_CORE(ksActiveFPU, thread->tcbAffinity);
-#else
-    return &thread->tcbArch.tcbContext.fpuState ==
-           NODE_STATE_ON_CORE(ksActiveFPUState, thread->tcbAffinity);
-#endif
 }
 
-#ifdef CONFIG_ARCH_AARCH64
 static inline void FORCE_INLINE eagerFPURestore(tcb_t *thread)
 {
     /* Check if thread has an FPU capability */
-    if ((cap_get_capType(TCB_PTR_CTE_PTR(thread, tcbFPU)->cap) != cap_fpu_cap)) {
+    if (thread->tcbArch.tcbFPU.tcbBoundFPU) {
         /* only disable FPU if its enabled */
         if ((isFPUEnabledCached[CURRENT_CPU_INDEX()])) {
-            /* ID: 3/4r */
             disableFpu();
-        } else {
-            /* 1 */
         }
 
         return;
     }
 
     if (nativeThreadUsingFPU(thread)) {
-        /* ID: 3r/4 */
         enableFpu();
     } else {
-        /* ID: 2 */
-        switchLocalFpuOwner(&thread->tcbArch.fpu);
+        switchLocalFpuOwner(&thread->tcbArch.tcbFPU);
+    }
+}
+
+static inline void bindFPU(tcb_t *tcb, fpu_t *fpuPtr)
+{
+    fpuPtr->fpuBoundTCB = tcb;
+    tcb->tcbArch.tcbFPU.tcbBoundFPU = fpuPtr;
+}
+
+static inline void unbindFPU(tcb_t *tcb)
+{
+    fpu_t *fpuPtr;
+    fpuPtr = tcb->tcbArch.tcbFPU.tcbBoundFPU;
+
+    if (fpuPtr) {
+        fpuPtr->fpuBoundTCB = NULL;
+        tcb->tcbArch.tcbFPU.tcbBoundFPU = NULL;
+    }
 }
 #else
+void switchLocalFpuOwner(user_fpu_state_t *new_owner);
+
+/* Switch the current owner of the FPU state on the core specified by 'cpu'. */
+void switchFpuOwner(user_fpu_state_t *new_owner, word_t cpu);
+
+/* Returns whether or not the passed thread is using the current active fpu state */
+static inline bool_t nativeThreadUsingFPU(tcb_t *thread)
+{
+    return &thread->tcbArch.tcbContext.fpuState ==
+           NODE_STATE_ON_CORE(ksActiveFPUState, thread->tcbAffinity);
+}
+
 static inline void FORCE_INLINE lazyFPURestore(tcb_t *thread)
 {
     if (unlikely(NODE_STATE(ksActiveFPUState))) {
@@ -92,6 +105,5 @@ static inline void FORCE_INLINE lazyFPURestore(tcb_t *thread)
          * is currently disabled */
     }
 }
-#endif
-
+#endif /* CONFIG_ARCH_AARCH64 */
 #endif /* CONFIG_HAVE_FPU */
