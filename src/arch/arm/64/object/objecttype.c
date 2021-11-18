@@ -237,7 +237,7 @@ finaliseCap_ret_t Arch_finaliseCap(cap_t cap, bool_t final)
 #ifdef CONFIG_ARCH_AARCH64
     case cap_fpu_cap:
         if (final) {
-            fpu_t *fpu = FPU_PTR(cap_fpu_cap_get_capFPUPtr(cap);
+            fpu_t *fpu = FPU_PTR(cap_fpu_cap_get_capFPUPtr(cap));
             unbindMaybeFPU(fpu);
         }
         break;
