@@ -58,6 +58,17 @@ static inline void bindFPU(tcb_t *tcb, fpu_t *fpuPtr)
     tcb->tcbArch.tcbFPU.tcbBoundFPU = fpuPtr;
 }
 
+static inline void unbindMaybeFPU(fpu_t *fpuPtr)
+{
+    tcb_t *boundTCB;
+    boundTCB = fpuPtr->fpuBoundTCB;
+
+    if (boundTCB) {
+        fpuPtr->fpuBoundTCB = NULL;
+        boundTCB->tcbArch.tcbFPU.tcbBoundFPU = NULL;
+    }
+}
+
 static inline void unbindFPU(tcb_t *tcb)
 {
     fpu_t *fpuPtr;

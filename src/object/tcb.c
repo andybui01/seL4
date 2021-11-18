@@ -1685,7 +1685,7 @@ exception_t decodeBindFPU(cap_t cap, cte_t *slot)
 
     setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
 
-    bindFPU(tcb, (fpu_t *) cap_fpu_cap_get_capFPUPtr(fpuCap));
+    bindFPU(tcb, FPU_PTR(cap_fpu_cap_get_capFPUPtr(fpuCap)));
 
     return EXCEPTION_NONE;
 }

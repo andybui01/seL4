@@ -127,7 +127,7 @@ typedef pgde_t vspace_root_t;
 #define PT_PTR(r)           ((pte_t *)(r))
 #define PT_REF(p)           ((word_t)(p))
 
-#define FPU_PTR(r)          ((tcb_fpu_t *)(r))
+#define FPU_PTR(r)          ((fpu_t *)(r))
 #define FPU_REF(p)          ((word_t)(p))
 
 /* Generate a vcpu_t pointer from a vcpu block reference */
@@ -183,6 +183,10 @@ static inline word_t CONST cap_get_archCapSizeBits(cap_t cap)
     case cap_vcpu_cap:
         return seL4_VCPUBits;
 #endif
+#ifdef CONFIG_HAVE_FPU
+    case cap_fpu_cap:
+        return seL4_FPUBits;
+#endif
 
     default:
         /* Unreachable, but GCC can't figure that out */
@@ -224,6 +228,11 @@ static inline bool_t CONST cap_get_archCapIsPhysical(cap_t cap)
         return true;
 #endif
 
+#ifdef CONFIG_HAVE_FPU
+    case cap_fpu_cap:
+        return true;
+#endif
+
     default:
         /* Unreachable, but GCC can't figure that out */
         return false;
@@ -261,6 +270,11 @@ static inline void *CONST cap_get_archCapPtr(cap_t cap)
 #ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
     case cap_vcpu_cap:
         return VCPU_PTR(cap_vcpu_cap_get_capVCPUPtr(cap));
+#endif
+
+#ifdef CONFIG_HAVE_FPU
+    case cap_fpu_cap:
+        return FPU_PTR(cap_fpu_cap_get_capFPUPtr(cap));
 #endif
 
     default:
