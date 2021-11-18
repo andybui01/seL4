@@ -494,6 +494,7 @@ cap_t Arch_createObject(object_t t, void *regionBase, word_t userSize, bool_t de
 
 #ifdef CONFIG_HAVE_FPU
     case seL4_ARM_FPUObject:
+        memzero(regionBase, BIT(seL4_FPUBits));
         return cap_fpu_cap_new((word_t)regionBase);
 #endif
 

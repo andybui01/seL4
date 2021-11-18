@@ -1665,13 +1665,20 @@ exception_t decodeUnbindNotification(cap_t cap)
 exception_t decodeBindFPU(cap_t cap, cte_t *slot)
 {
     tcb_t *tcb;
+    fpu_t *fpuPtr;
     cap_t fpuCap;
-
-    tcb = TCB_PTR(cap_thread_cap_get_capTCBPtr(cap));
 
     if (current_extra_caps.excaprefs[0] == NULL) {
         userError("TCB BindFPU: Truncated message.");
         current_syscall_error.type = seL4_TruncatedMessage;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    tcb = TCB_PTR(cap_thread_cap_get_capTCBPtr(cap));
+
+    if (tcb->tcbArch.tcbFPU.tcbBoundFPU) {
+        userError("TCB BindFPU: TCB already has a bound FPU.");
+        current_syscall_error.type = seL4_IllegalOperation;
         return EXCEPTION_SYSCALL_ERROR;
     }
 
@@ -1683,10 +1690,16 @@ exception_t decodeBindFPU(cap_t cap, cte_t *slot)
         return EXCEPTION_SYSCALL_ERROR;
     }
 
+    fpuPtr = FPU_PTR(cap_fpu_cap_get_capFPUPtr(fpuCap));
+
+    if (fpuPtr->fpuBoundTCB) {
+        userError("TCB BindFPU: FPU cannot be bound.");
+        current_syscall_error.type = seL4_IllegalOperation;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
     setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
-
-    bindFPU(tcb, FPU_PTR(cap_fpu_cap_get_capFPUPtr(fpuCap)));
-
+    bindFPU(tcb, fpuPtr);
     return EXCEPTION_NONE;
 }
 
@@ -1697,16 +1710,14 @@ exception_t decodeUnbindFPU(cap_t cap)
     tcb = TCB_PTR(cap_thread_cap_get_capTCBPtr(cap));
 
     if (!tcb->tcbArch.tcbFPU.tcbBoundFPU) {
-        userError("TCB UnbindFPU: has no bound FPU.");
+        userError("TCB UnbindFPU: TCB has no bound FPU.");
         current_syscall_error.type = seL4_IllegalOperation;
         return EXCEPTION_SYSCALL_ERROR;
     }
 
     setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
-
     fpuThreadDelete(tcb);
     unbindFPU(tcb);
-
     return EXCEPTION_NONE;
 }
 #endif

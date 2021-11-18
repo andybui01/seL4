@@ -77,6 +77,11 @@ static inline void unbindFPU(tcb_t *tcb)
     if (fpuPtr) {
         fpuPtr->fpuBoundTCB = NULL;
         tcb->tcbArch.tcbFPU.tcbBoundFPU = NULL;
+        memzero(fpuPtr, BIT(seL4_FPUBits));
+
+        /* Clear leftover vregs in tcb */
+        tcb->tcbArch.tcbFPU.last_vregs[0] = 0;
+        tcb->tcbArch.tcbFPU.last_vregs[1] = 0;
     }
 }
 #else
