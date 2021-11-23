@@ -36,7 +36,7 @@ static inline bool_t nativeThreadUsingFPU(tcb_t *thread)
 static inline void FORCE_INLINE eagerFPURestore(tcb_t *thread)
 {
     /* Check if thread has a bound FPU object */
-    if (thread->tcbArch.tcbFPU.tcbBoundFPU) {
+    if (!thread->tcbArch.tcbFPU.tcbBoundFPU) {
         /* only disable FPU if its enabled */
         if ((isFPUEnabledCached[CURRENT_CPU_INDEX()])) {
             disableFpu();

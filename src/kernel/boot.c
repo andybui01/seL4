@@ -161,6 +161,9 @@ BOOT_CODE static word_t calculate_rootserver_size(v_region_t it_v_reg, word_t ex
     size += BIT(seL4_ASIDPoolBits);
     size += extra_bi_size_bits > 0 ? BIT(extra_bi_size_bits) : 0;
     size += BIT(seL4_VSpaceBits); // root vspace
+#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
+    size += BIT(seL4_FPUBits);
+#endif
 #ifdef CONFIG_KERNEL_MCS
     size += BIT(seL4_MinSchedContextBits); // root sched context
 #endif
@@ -222,6 +225,10 @@ BOOT_CODE static void create_rootserver_objects(pptr_t start, v_region_t it_v_re
     /* for most archs, TCBs are smaller than page tables */
 #if seL4_TCBBits < seL4_PageTableBits
     rootserver.tcb = alloc_rootserver_obj(seL4_TCBBits, 1);
+#endif
+
+#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
+    rootserver.fpu = alloc_rootserver_obj(seL4_FPUBits, 1);
 #endif
 
 #ifdef CONFIG_KERNEL_MCS
@@ -508,6 +515,12 @@ BOOT_CODE tcb_t *create_initial_thread(cap_t root_cnode_cap, cap_t it_pd_cap, vp
     if (!configure_sched_context(tcb, SC_PTR(rootserver.sc), usToTicks(CONFIG_BOOT_THREAD_TIME_SLICE * US_IN_MS), 0)) {
         return NULL;
     }
+#endif
+
+    /* provide rootserver FPU access */
+#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
+    write_slot(SLOT_PTR(pptr_of_cap(root_cnode_cap), seL4_CapFPU), cap_fpu_cap_new(rootserver.fpu));
+    bindFPU(tcb, FPU_PTR(rootserver.fpu));
 #endif
 
     tcb->tcbPriority = seL4_MaxPrio;
