@@ -56,9 +56,6 @@ void populate_bi_frame(node_id_t node_id, word_t num_nodes, vptr_t ipcbuf_vptr,
                        word_t extra_bi_size_bits);
 void create_bi_frame_cap(cap_t root_cnode_cap, cap_t pd_cap, vptr_t vptr);
 
-#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
-cap_t create_it_fpu(cap_t root_cnode_cap);
-#endif
 #ifdef CONFIG_KERNEL_MCS
 bool_t init_sched_control(cap_t root_cnode_cap, word_t num_nodes);
 #endif
@@ -106,9 +103,6 @@ typedef struct {
     pptr_t boot_info;
     pptr_t extra_bi;
     pptr_t tcb;
-#if defined(CONFIG_ARCH_AARCH64) && defined(CONFIG_HAVE_FPU)
-    pptr_t fpu;
-#endif
 #ifdef CONFIG_KERNEL_MCS
     pptr_t sc;
 #endif
