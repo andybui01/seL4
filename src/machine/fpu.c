@@ -17,9 +17,10 @@ void switchLocalFpuOwner(tcb_fpu_t *new_owner)
 {
     enableFpu();
     if (NODE_STATE(ksActiveFPU)) {
+        assert(NODE_STATE(ksActiveFPU)->tcbBoundFPU);
         saveFpuState(NODE_STATE(ksActiveFPU));
     }
-    if (new_owner) {
+    if (new_owner->tcbBoundFPU) {
         loadFpuState(new_owner);
     } else {
         disableFpu();
@@ -87,10 +88,12 @@ exception_t handleFPUFault(void)
 /* Prepare for the deletion of the given thread. */
 void fpuThreadDelete(tcb_t *thread)
 {
-    /* If the thread being deleted currently owns the FPU, switch away from it
-     * so that 'ksActiveFPU/ksActiveFPUState' doesn't point to invalid memory. */
     if (nativeThreadUsingFPU(thread)) {
-        switchFpuOwner(NULL, SMP_TERNARY(thread->tcbAffinity, 0));
+        NODE_STATE(ksActiveFPU) = NULL;
+        
+        if (isFPUEnabledCached[CURRENT_CPU_INDEX()]) {
+            disableFpu();
+        }
     }
 }
 #endif /* CONFIG_HAVE_FPU */

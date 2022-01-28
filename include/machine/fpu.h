@@ -46,6 +46,7 @@ static inline void FORCE_INLINE eagerFPURestore(tcb_t *thread)
     }
 
     if (nativeThreadUsingFPU(thread)) {
+        assert(thread->tcbArch.tcbFPU.tcbBoundFPU);
         enableFpu();
     } else {
         switchLocalFpuOwner(&thread->tcbArch.tcbFPU);
