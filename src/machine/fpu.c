@@ -69,8 +69,13 @@ exception_t handleFPUFault(void)
 #if defined(CONFIG_ARCH_AARCH64)
     /* FPU is enabled by default for all threads that own the FPU, so only
      * way we can reach here is if a thread is naughty. */
-    fail("Invalid FPU cap");
-    UNREACHABLE();
+    assert(!nativeThreadUsingFPU(NODE_STATE(ksCurThread)));
+
+    if (NODE_STATE(ksCurThread)->tcbArch.tcbFPU.tcbBoundFPU == NULL) {
+        fail("No fpu cap!");
+        UNREACHABLE();
+    }
+    switchLocalFpuOwner(&NODE_STATE(ksCurThread)->tcbArch.tcbFPU);
 #else
     /* If we have already given the FPU to the user, we should not reach here.
      * This should only be able to occur on CPUs without an FPU at all, which
@@ -87,10 +92,12 @@ exception_t handleFPUFault(void)
 /* Prepare for the deletion of the given thread. */
 void fpuThreadDelete(tcb_t *thread)
 {
-    /* If the thread being deleted currently owns the FPU, switch away from it
-     * so that 'ksActiveFPU/ksActiveFPUState' doesn't point to invalid memory. */
     if (nativeThreadUsingFPU(thread)) {
-        switchFpuOwner(NULL, SMP_TERNARY(thread->tcbAffinity, 0));
+        NODE_STATE(ksActiveFPU) = NULL;
+        
+        if (isFPUEnabledCached[CURRENT_CPU_INDEX()]) {
+            disableFpu();
+        }
     }
 }
 #endif /* CONFIG_HAVE_FPU */

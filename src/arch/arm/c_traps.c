@@ -57,8 +57,6 @@ void VISIBLE NORETURN c_handle_enfp(void)
     c_entry_hook();
 
     handleFPUFault();
-    /* UNREACHABLE if we're using eager FPU... */
-    UNREACHABLE();
 
     /* Old code */
     restore_user_context();
