@@ -63,6 +63,11 @@ deriveCap_ret_t Arch_deriveCap(cte_t *slot, cap_t cap)
         ret.status = EXCEPTION_NONE;
         return ret;
 
+    case cap_fpu_cap:
+        ret.cap = cap_null_cap_new();
+        ret.status = EXCEPTION_NONE;
+        return ret;
+
 #ifdef CONFIG_IOMMU
     case cap_io_space_cap:
         ret.cap = cap;
@@ -199,6 +204,13 @@ finaliseCap_ret_t Arch_finaliseCap(cap_t cap, bool_t final)
                 cap_page_table_cap_get_capPTMappedAddress(cap),
                 PT_PTR(cap_page_table_cap_get_capPTBasePtr(cap))
             );
+        }
+        break;
+
+    case cap_fpu_cap:
+        if (final) {
+            fpu_t *fpu = FPU_PTR(cap_fpu_cap_get_capFpuPtr(cap));
+            unbindMaybeFpu(fpu);
         }
         break;
 
@@ -346,6 +358,13 @@ bool_t CONST Arch_sameRegionAs(cap_t cap_a, cap_t cap_b)
         }
         break;
 
+    case cap_fpu_cap:
+        if (cap_get_capType(cap_b) == cap_fpu_cap) {
+            return cap_fpu_cap_get_capFpuPtr(cap_a) ==
+                   cap_fpu_cap_get_capFpuPtr(cap_b);
+        }
+        break;
+
 #ifdef CONFIG_IOMMU
     case cap_io_space_cap:
         if (cap_get_capType(cap_b) == cap_io_space_cap) {
@@ -439,6 +458,8 @@ word_t Arch_getObjectSize(word_t t)
         return seL4_PDPTBits;
     case seL4_X86_IOPageTableObject:
         return seL4_IOPageTableBits;
+    case seL4_X86_FPUObject:
+        return seL4_FPUBits;
 #ifdef CONFIG_VTX
     case seL4_X86_VCPUObject:
         return seL4_X86_VCPUBits;
@@ -458,8 +479,10 @@ word_t Arch_getObjectSize(word_t t)
 
 cap_t Arch_createObject(object_t t, void *regionBase, word_t userSize, bool_t deviceMemory)
 {
-#ifdef CONFIG_VTX
     switch (t) {
+    case seL4_ARM_FPUObject:
+        return cap_fpu_cap_new((word_t) regionBase);
+#ifdef CONFIG_VTX
     case seL4_X86_VCPUObject: {
         vcpu_t *vcpu;
         vcpu = VCPU_PTR((word_t)regionBase);
@@ -493,12 +516,10 @@ cap_t Arch_createObject(object_t t, void *regionBase, word_t userSize, bool_t de
                    VPID_INVALID,       /* capPTMappedASID      */
                    (word_t)regionBase  /* capPTBasePtr         */
                );
+#endif
     default:
-#endif
         return Mode_createObject(t, regionBase, userSize, deviceMemory);
-#ifdef CONFIG_VTX
     }
-#endif
 }
 
 exception_t Arch_decodeInvocation(

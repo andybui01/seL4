@@ -27,8 +27,29 @@ enum tcb_arch_cnode_index {
 #endif
 };
 
+typedef struct fpu {
+    uint8_t state[CONFIG_XSAVE_SIZE];
+
+    /* Backlink from fpu to TCB */
+    struct tcb *fpuBoundTCB;
+} fpu_t;
+
+typedef struct tcb_fpu {
+    /* Object created from retyping an untyped */
+    fpu_t *tcbBoundFpu;
+} tcb_fpu_t;
+
+/* Ensure FPU state is aligned within the FPU object. */
+unverified_compile_assert(fpu_state_alignment_valid,
+                          OFFSETOF(fpu_t, state) % MIN_FPU_ALIGNMENT == 0)
+compile_assert(fpu_size_sane,
+               BIT(seL4_FPUBits) >= sizeof(fpu_t))
+compile_assert(fpu_size_not_excessive,
+               BIT(seL4_FPUBits - 1) < sizeof(fpu_t))
+
 typedef struct arch_tcb {
     user_context_t tcbContext;
+    tcb_fpu_t tcbFpu;
 #ifdef CONFIG_VTX
     /* Pointer to associated VCPU. NULL if not associated.
      * tcb->tcbVCPU->vcpuTCB == tcb. */

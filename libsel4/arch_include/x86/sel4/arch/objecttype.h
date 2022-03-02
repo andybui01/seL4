@@ -13,6 +13,7 @@ typedef enum _object {
     seL4_X86_LargePageObject,
     seL4_X86_PageTableObject,
     seL4_X86_PageDirectoryObject,
+    seL4_X86_FPUObject,
 #ifdef CONFIG_IOMMU
     seL4_X86_IOPageTableObject,
 #endif

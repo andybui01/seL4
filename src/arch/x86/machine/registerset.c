@@ -19,7 +19,6 @@ void Arch_initContext(user_context_t *context)
     context->registers[FLAGS] = FLAGS_USER_DEFAULT;
     context->registers[SS] = SEL_DS_3;
 
-    Arch_initFpuContext(context);
 #ifdef CONFIG_HARDWARE_DEBUG_API
     Arch_initBreakpointContext(&context->breakpointState);
 #endif

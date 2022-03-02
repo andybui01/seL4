@@ -49,7 +49,9 @@ static inline void FORCE_INLINE eagerFPURestore(tcb_t *thread)
 
 static inline void doUnbindFpu(fpu_t *fpuPtr, tcb_t *tcb)
 {
+#ifndef CONFIG_ARCH_X86
     memzero(fpuPtr, sizeof(fpu_t));
+#endif
     memzero(&tcb->tcbArch.tcbFpu, sizeof(tcb_fpu_t));
 }
 
@@ -73,6 +75,9 @@ static void bindFpu(tcb_t *tcb, fpu_t *fpuPtr)
 {
     fpuPtr->fpuBoundTCB = tcb;
     tcb->tcbArch.tcbFpu.tcbBoundFpu = fpuPtr;
+#ifdef CONFIG_ARCH_X86
+    initFpuContext(tcb);
+#endif
 }
 
 #endif /* CONFIG_HAVE_FPU */

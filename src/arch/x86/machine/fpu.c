@@ -13,9 +13,10 @@
 /*
  * Setup the FPU register state for a new thread.
  */
-void Arch_initFpuContext(user_context_t *context)
+void initFpuContext(tcb_t *tcb)
 {
-    context->fpuState = x86KSnullFpuState;
+    assert(tcb.tcbArch.tcbFpu->tcbBoundFpu);
+    memcpy(tcb.tcbArch.tcbFpu->tcbBoundFpu->state, x86KSnullFpuState, CONFIG_XSAVE_SIZE);
 }
 
 /*
@@ -37,10 +38,10 @@ BOOT_CODE bool_t Arch_initFpu(void)
         uint64_t xsave_features;
         uint32_t xsave_instruction;
         uint64_t desired_features = config_ternary(CONFIG_XSAVE, CONFIG_XSAVE_FEATURE_SET, 1);
-        xsave_state_t *nullFpuState = (xsave_state_t *) &x86KSnullFpuState;
+        xsave_state_t *nullFpuState = (xsave_state_t *) x86KSnullFpuState;
 
         /* create NULL state for FPU to be used by XSAVE variants */
-        memzero(&x86KSnullFpuState, sizeof(x86KSnullFpuState));
+        memzero(x86KSnullFpuState, sizeof(x86KSnullFpuState));
 
         /* check for XSAVE support */
         if (!(x86_cpuid_ecx(1, 0) & BIT(26))) {
@@ -93,11 +94,11 @@ BOOT_CODE bool_t Arch_initFpu(void)
         }
 
         /* copy i387 FPU initial state from FPU */
-        saveFpuState(&x86KSnullFpuState);
+        saveFpuState(x86KSnullFpuState);
         nullFpuState->i387.mxcsr = MXCSR_INIT_VALUE;
     } else {
         /* Store the null fpu state */
-        saveFpuState(&x86KSnullFpuState);
+        saveFpuState(x86KSnullFpuState);
     }
     /* Set the FPU to lazy switch mode */
     disableFpu();

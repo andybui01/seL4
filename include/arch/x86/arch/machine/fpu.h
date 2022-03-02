@@ -44,7 +44,7 @@ typedef struct xsave_state {
 bool_t Arch_initFpu(void);
 
 /* Initialise the FPU state of the given user context. */
-void Arch_initFpuContext(user_context_t *context);
+void initFpuContext(tcb_t *tcb);
 
 static inline uint32_t xsave_features_high(void)
 {
@@ -59,33 +59,43 @@ static inline uint32_t xsave_features_low(void)
 }
 
 /* Store state in the FPU registers into memory. */
-static inline void saveFpuState(user_fpu_state_t *dest)
+static inline void saveFpuState(void *dest)
 {
     if (config_set(CONFIG_FXSAVE)) {
-        asm volatile("fxsave %[dest]" : [dest] "=m"(*dest));
+        asm volatile("fxsave %[dest]" : [dest] "=m"(dest));
     } else if (config_set(CONFIG_XSAVE_XSAVEOPT)) {
-        asm volatile("xsaveopt %[dest]" : [dest] "=m"(*dest) : "d"(xsave_features_high()), "a"(xsave_features_low()));
+        asm volatile("xsaveopt %[dest]" : [dest] "=m"(dest) : "d"(xsave_features_high()), "a"(xsave_features_low()));
     } else if (config_set(CONFIG_XSAVE_XSAVE)) {
-        asm volatile("xsave %[dest]" : [dest] "=m"(*dest) : "d"(xsave_features_high()), "a"(xsave_features_low()));
+        asm volatile("xsave %[dest]" : [dest] "=m"(dest) : "d"(xsave_features_high()), "a"(xsave_features_low()));
     } else if (config_set(CONFIG_XSAVE_XSAVEC)) {
-        asm volatile("xsavec %[dest]" : [dest] "=m"(*dest) : "d"(xsave_features_high()), "a"(xsave_features_low()));
+        asm volatile("xsavec %[dest]" : [dest] "=m"(dest) : "d"(xsave_features_high()), "a"(xsave_features_low()));
     } else if (config_set(CONFIG_XSAVE_XSAVES)) {
-        asm volatile("xsaves %[dest]" : [dest] "=m"(*dest) : "d"(xsave_features_high()), "a"(xsave_features_low()));
+        asm volatile("xsaves %[dest]" : [dest] "=m"(dest) : "d"(xsave_features_high()), "a"(xsave_features_low()));
     }
 }
 
+static inline void saveTcbFpuState(tcb_fpu_t *dest)
+{
+    saveFpuState(&dest->tcbBoundFpu->state[0]);
+}
+
 /* Load FPU state from memory into the FPU registers. */
-static inline void loadFpuState(user_fpu_state_t *src)
+static inline void loadFpuState(void *src)
 {
     if (config_set(CONFIG_FXSAVE)) {
-        asm volatile("fxrstor %[src]" :: [src] "m"(*src));
+        asm volatile("fxrstor %[src]" :: [src] "m"(src));
     } else if (config_set(CONFIG_XSAVE)) {
         if (config_set(CONFIG_XSAVE_XSAVES)) {
-            asm volatile("xrstors %[src]" :: [src] "m"(*src), "d"(xsave_features_high()), "a"(xsave_features_low()));
+            asm volatile("xrstors %[src]" :: [src] "m"(src), "d"(xsave_features_high()), "a"(xsave_features_low()));
         } else {
-            asm volatile("xrstor %[src]" :: [src] "m"(*src), "d"(xsave_features_high()), "a"(xsave_features_low()));
+            asm volatile("xrstor %[src]" :: [src] "m"(src), "d"(xsave_features_high()), "a"(xsave_features_low()));
         }
     }
+}
+
+static inline void loadTcbFpuState(tcb_fpu_t *src)
+{
+    loadFpuState(&src->tcbBoundFpu->state[0]);
 }
 
 /* Reset the FPU registers into their initial blank state. */
