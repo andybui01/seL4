@@ -44,7 +44,7 @@ typedef struct xsave_state {
 bool_t Arch_initFpu(void);
 
 /* Initialise the FPU state of the given user context. */
-void Arch_initFpuContext(user_context_t *context);
+void initFpuContext(tcb_t *tcb);
 
 static inline uint32_t xsave_features_high(void)
 {
@@ -59,7 +59,7 @@ static inline uint32_t xsave_features_low(void)
 }
 
 /* Store state in the FPU registers into memory. */
-static inline void saveFpuState(user_fpu_state_t *dest)
+static inline void doSaveFpuState(uint8_t *dest)
 {
     if (config_set(CONFIG_FXSAVE)) {
         asm volatile("fxsave %[dest]" : [dest] "=m"(*dest));
@@ -74,8 +74,13 @@ static inline void saveFpuState(user_fpu_state_t *dest)
     }
 }
 
+static inline void saveFpuState(tcb_fpu_t *dest)
+{
+    doSaveFpuState(&dest->tcbBoundFpu->state[0]);
+}
+
 /* Load FPU state from memory into the FPU registers. */
-static inline void loadFpuState(user_fpu_state_t *src)
+static inline void doLoadFpuState(uint8_t *src)
 {
     if (config_set(CONFIG_FXSAVE)) {
         asm volatile("fxrstor %[src]" :: [src] "m"(*src));
@@ -86,6 +91,11 @@ static inline void loadFpuState(user_fpu_state_t *src)
             asm volatile("xrstor %[src]" :: [src] "m"(*src), "d"(xsave_features_high()), "a"(xsave_features_low()));
         }
     }
+}
+
+static inline void loadFpuState(tcb_fpu_t *src)
+{
+    doLoadFpuState(&src->tcbBoundFpu->state[0]);
 }
 
 /* Reset the FPU registers into their initial blank state. */
@@ -101,6 +111,7 @@ static inline void finit(void)
 static inline void enableFpu(void)
 {
     asm volatile("clts" :: "m"(control_reg_order));
+    isFPUEnabledCached[CURRENT_CPU_INDEX()] = true;
 }
 
 /*
@@ -109,6 +120,7 @@ static inline void enableFpu(void)
 static inline void disableFpu(void)
 {
     write_cr0(read_cr0() | CR0_TASK_SWITCH);
+    isFPUEnabledCached[CURRENT_CPU_INDEX()] = false;
 }
 
 #ifdef CONFIG_VTX
@@ -117,4 +129,3 @@ static inline bool_t vcpuThreadUsingFPU(tcb_t *thread)
     return thread->tcbArch.tcbVCPU && &thread->tcbArch.tcbVCPU->fpuState == NODE_STATE(ksActiveFPU);
 }
 #endif /* CONFIG_VTX */
-

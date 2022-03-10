@@ -734,4 +734,3 @@ BOOT_CODE VISIBLE void boot_sys(
     schedule();
     activateThread();
 }
-

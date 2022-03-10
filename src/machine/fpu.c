@@ -11,6 +11,9 @@
 #include <arch/object/structures.h>
 
 #ifdef CONFIG_HAVE_FPU
+
+bool_t isFPUEnabledCached[CONFIG_MAX_NUM_NODES];
+
 /* Switch the owner of the FPU to the given thread on local core. */
 void switchLocalFpuOwner(tcb_fpu_t *new_owner)
 {

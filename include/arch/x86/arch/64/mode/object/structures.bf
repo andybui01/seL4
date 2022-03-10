@@ -98,12 +98,21 @@ block asid_pool_cap {
     field_high  capASIDPool     37
 }
 
+-- Cap to an FPU object
+block fpu_cap {
+    padding                 16
+    field_high  capFpuPtr   48
+
+    field       capType     8
+    padding                 56
+}
+
 -- IO Port Control Cap
 block io_port_control_cap {
     padding 64
 
-    field   capType             5
-    padding 59
+    field   capType             8
+    padding 56
 }
 
 -- IO Port Cap
@@ -215,6 +224,9 @@ block ept_pml4_cap (capType, capPML4IsMapped, capPML4MappedASID, capPML4BasePtr)
 
 -- NB: odd numbers are arch caps (see isArchCap())
 tagged_union cap capType {
+    mask 5 0b11110
+    mask 8 0b11111110
+
     -- 5-bit tag caps
     tag null_cap            0
     tag untyped_cap         2
@@ -252,7 +264,10 @@ tagged_union cap capType {
     tag ept_pdpt_cap        27
     tag ept_pml4_cap        29
 #endif
-    tag io_port_control_cap 31
+
+    -- 8-bit tag caps
+    tag io_port_control_cap 0b11110001
+    tag fpu_cap             0b11110011
 }
 
 ---- Arch-independent object types

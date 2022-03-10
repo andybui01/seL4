@@ -20,7 +20,15 @@
 
 #define seL4_PageBits        12 /* 4K */
 #define seL4_SlotBits         4
-#define seL4_TCBBits         11
+#define seL4_TCBBits         10
+
+/* FPU object needs enough space for XSAVE state + pointer to TCB */
+#if CONFIG_XSAVE_SIZE + 4 <= 1024
+#define seL4_FPUBits            10
+#else
+#define seL4_FPUBits            11
+#endif
+
 #define seL4_EndpointBits     4
 #ifdef CONFIG_KERNEL_MCS
 #define seL4_NotificationBits 5

@@ -91,6 +91,9 @@ typedef pml4e_t vspace_root_t;
 #define PT_PTR(r)    ((pte_t *)(r))
 #define PT_REF(p)    ((word_t)(p))
 
+#define FPU_PTR(r)          ((fpu_t *)(r))
+#define FPU_REF(p)          ((word_t)(p))
+
 /* there are 1^12 hardware PCID; now we match the software ASID
  * to the available PCID. Since each ASID pool is 4K in size,
  * it contains 512 vroots.
@@ -192,4 +195,3 @@ static inline void *CONST cap_get_modeCapPtr(cap_t cap)
         return NULL;
     }
 }
-

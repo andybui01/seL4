@@ -23,11 +23,17 @@
 #define seL4_WordSizeBits       3
 #define seL4_PageBits           12
 #define seL4_SlotBits           5
-#if CONFIG_XSAVE_SIZE >= 832
-#define seL4_TCBBits            12
+#define seL4_TCBBits            10
+
+/* FPU object needs enough space for XSAVE state + pointer to TCB */
+#if CONFIG_XSAVE_SIZE + 8 <= 1024
+#define seL4_FPUBits            10
+#elif CONFIG_XSAVE_SIZE + 8 <= 2048
+#define seL4_FPUBits            11
 #else
-#define seL4_TCBBits            11
+#define seL4_FPUBits            12
 #endif
+
 #define seL4_EndpointBits       4
 #ifdef CONFIG_KERNEL_MCS
 #define seL4_NotificationBits   6
@@ -155,4 +161,3 @@ typedef enum {
 
 /* First address in the virtual address space that is not accessible to user level */
 #define seL4_UserTop 0x00007ffffffff000
-

@@ -8,8 +8,6 @@
 
 #include <mode/machine/registerset.h>
 
-extern bool_t isFPUEnabledCached[CONFIG_MAX_NUM_NODES];
-
 #ifdef CONFIG_HAVE_FPU
 /* Store state in the FPU registers into memory. */
 static inline void saveFpuState(tcb_fpu_t *dest)
@@ -135,10 +133,6 @@ static inline void enableFpu(void)
     isFPUEnabledCached[CURRENT_CPU_INDEX()] = true;
 }
 
-static inline bool_t isFpuEnable(void)
-{
-    return isFPUEnabledCached[CURRENT_CPU_INDEX()];
-}
 #endif /* CONFIG_HAVE_FPU */
 
 /* Disable the FPU so that usage of it causes a fault */
@@ -151,4 +145,3 @@ static inline void disableFpu(void)
     }
     isFPUEnabledCached[CURRENT_CPU_INDEX()] = false;
 }
-

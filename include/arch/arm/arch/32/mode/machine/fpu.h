@@ -34,8 +34,6 @@
 #define FPEXC_DEX_BIT                29
 #define FPEXC_FP2V_BIT               28
 
-extern bool_t isFPUEnabledCached[CONFIG_MAX_NUM_NODES];
-
 static void clearEnFPEXC(void)
 {
     word_t fpexc;
@@ -172,12 +170,6 @@ static inline void enableFpu(void)
     isFPUEnabledCached[CURRENT_CPU_INDEX()] = true;
 }
 
-/* Check if FPU is enable */
-static inline bool_t isFpuEnable(void)
-{
-    return isFPUEnabledCached[CURRENT_CPU_INDEX()];
-}
-
 /* Load FPU state from memory into the FPU registers. */
 static inline void loadFpuState(tcb_fpu_t *src)
 {
@@ -234,4 +226,3 @@ static inline void disableFpu(void)
     }
     isFPUEnabledCached[CURRENT_CPU_INDEX()] = false;
 }
-

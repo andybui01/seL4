@@ -156,7 +156,7 @@ void VISIBLE NORETURN restore_user_context(void)
         restore_vmx();
     }
 #endif
-    lazyFPURestore(cur_thread);
+    eagerFPURestore(cur_thread);
 
 #ifdef CONFIG_HARDWARE_DEBUG_API
     restore_user_debug_context(cur_thread);

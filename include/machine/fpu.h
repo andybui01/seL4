@@ -9,6 +9,15 @@
 #include <config.h>
 #include <object/structures.h>
 #include <model/statedata.h>
+
+extern bool_t isFPUEnabledCached[CONFIG_MAX_NUM_NODES];
+
+/* Check if FPU is enable */
+static inline bool_t isFpuEnable(void)
+{
+    return isFPUEnabledCached[CURRENT_CPU_INDEX()];
+}
+
 #include <arch/machine/fpu.h>
 
 #ifdef CONFIG_HAVE_FPU
@@ -36,7 +45,7 @@ static inline void FORCE_INLINE eagerFPURestore(tcb_t *thread)
     /* If next thread doesn't have an fpu object and fpu is currently
      * enabled, we can disable fpu */
     if (!thread->tcbArch.tcbFpu.tcbBoundFpu
-        && isFPUEnabledCached[CURRENT_CPU_INDEX()]) {
+        && isFpuEnable()) {
         disableFpu();
     } else {
         if (nativeThreadUsingFPU(thread)) {
@@ -49,7 +58,9 @@ static inline void FORCE_INLINE eagerFPURestore(tcb_t *thread)
 
 static inline void doUnbindFpu(fpu_t *fpuPtr, tcb_t *tcb)
 {
+#ifndef CONFIG_ARCH_X86
     memzero(fpuPtr, sizeof(fpu_t));
+#endif
     memzero(&tcb->tcbArch.tcbFpu, sizeof(tcb_fpu_t));
 }
 
@@ -73,7 +84,9 @@ static void bindFpu(tcb_t *tcb, fpu_t *fpuPtr)
 {
     fpuPtr->fpuBoundTCB = tcb;
     tcb->tcbArch.tcbFpu.tcbBoundFpu = fpuPtr;
+#ifdef CONFIG_ARCH_X86
+    initFpuContext(tcb);
+#endif
 }
 
 #endif /* CONFIG_HAVE_FPU */
-
