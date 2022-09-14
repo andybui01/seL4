@@ -11,8 +11,8 @@
 extern "C" {
 #endif
 
-__attribute__((deprecated("use lai_resource_view instead"))) size_t
-lai_read_resource(lai_nsnode_t *, acpi_resource_t *);
+__attribute__((deprecated("use lai_resource_view instead"))) word_t
+lai_read_resource(lai_nsnode_t *, lai_acpi_resource_t *);
 
 enum lai_resource_type {
     LAI_RESOURCE_NULL,
@@ -26,8 +26,8 @@ enum lai_resource_type {
 
 struct lai_resource_view {
     uint8_t *entry;
-    size_t skip_size;
-    size_t entry_idx;
+    word_t skip_size;
+    word_t entry_idx;
     lai_variable_t *crs_var;
 
     uint64_t base; // MMIO / IO / Generic Addresses

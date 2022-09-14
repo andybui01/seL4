@@ -6,8 +6,7 @@
 #pragma once
 
 #include <stdarg.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,16 +35,16 @@ struct lai_sync_state {
 };
 
 // OS-specific functions.
-void *laihost_malloc(size_t);
-void *laihost_realloc(void *, size_t newsize, size_t oldsize);
-void laihost_free(void *, size_t);
+void *laihost_malloc(word_t);
+void *laihost_realloc(void *, word_t newsize, word_t oldsize);
+void laihost_free(void *, word_t);
 
 __attribute__((weak)) void laihost_log(int, const char *);
 __attribute__((weak, noreturn)) void laihost_panic(const char *);
 
-__attribute__((weak)) void *laihost_scan(const char *, size_t);
-__attribute__((weak)) void *laihost_map(size_t, size_t);
-__attribute__((weak)) void laihost_unmap(void *, size_t);
+__attribute__((weak)) void *laihost_scan(const char *, word_t);
+__attribute__((weak)) void *laihost_map(word_t, word_t);
+__attribute__((weak)) void laihost_unmap(void *, word_t);
 __attribute__((weak)) void laihost_outb(uint16_t, uint8_t);
 __attribute__((weak)) void laihost_outw(uint16_t, uint16_t);
 __attribute__((weak)) void laihost_outd(uint16_t, uint32_t);

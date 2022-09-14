@@ -377,6 +377,17 @@ add_sources(
         kernel/cmdline.c
         kernel/ept.c
         kernel/thread.c
+        kernel/lai/error.c
+        kernel/lai/eval.c
+        kernel/lai/exec.c
+        kernel/lai/exec-operand.c
+        kernel/lai/libc.c
+        kernel/lai/ns.c
+        kernel/lai/object.c
+        kernel/lai/opregion.c
+        kernel/lai/os_methods.c
+        kernel/lai/variable.c
+        kernel/lai/vsnprintf.c
         model/statedata.c
         machine/capdl.c
         machine/hardware.c

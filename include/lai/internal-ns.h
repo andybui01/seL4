@@ -20,9 +20,9 @@ __attribute__((always_inline)) inline void lai_namecpy(char *dest, const char *s
 }
 
 struct lai_aml_segment {
-    acpi_aml_t *table;
+    lai_acpi_aml_t *table;
     // Index of the table (e.g., for SSDTs).
-    size_t index;
+    word_t index;
 };
 
 struct lai_opregion_override {
@@ -72,7 +72,7 @@ typedef struct lai_nsnode {
     struct lai_nsnode *parent;
     struct lai_aml_segment *amls;
     void *pointer; // valid for scopes, methods, etc.
-    size_t size; // valid for scopes, methods, etc.
+    word_t size; // valid for scopes, methods, etc.
 
     lai_variable_t object; // for Name()
 
@@ -93,7 +93,7 @@ typedef struct lai_nsnode {
         struct { // LAI_NAMESPACE_FIELD and LAI_NAMESPACE_BANK_FIELD and LAI_NAMESPACE_INDEX_FIELD
             struct lai_nsnode *fld_region_node;
             uint64_t fld_offset; // In bits.
-            size_t fld_size; // In bits.
+            word_t fld_size; // In bits.
             uint8_t fld_flags;
 
             union {

@@ -6,20 +6,14 @@
 #pragma once
 
 #include <lai/host.h>
-#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-size_t lai_strlen(const char *);
+word_t lai_strlen(const char *);
 
-// Even in freestanding environments, GCC requires memcpy(), memmove(), memset()
-// and memcmp() to be present. Thus, we just use them directly.
-void *memcpy(void *, const void *, size_t);
-void *memmove(void *, const void *, size_t);
-void *memset(void *, int, size_t);
-int memcmp(const void *, const void *, size_t);
+int memcmp(const void *, const void *, word_t);
 
 //---------------------------------------------------------------------------------------
 // Debugging and logging functions.

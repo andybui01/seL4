@@ -38,15 +38,15 @@ extern "C" {
 #define ACPI_OPREGION_CMOS 0x05
 #define ACPI_OPREGION_OEM 0x80
 
-typedef struct acpi_rsdp_t {
+typedef struct lai_acpi_rsdp_t {
     char signature[8];
     uint8_t checksum;
     char oem[6];
     uint8_t revision;
     uint32_t rsdt;
-} __attribute__((packed)) acpi_rsdp_t;
+} __attribute__((packed)) lai_acpi_rsdp_t;
 
-typedef struct acpi_xsdp_t {
+typedef struct lai_acpi_xsdp_t {
     char signature[8];
     uint8_t checksum;
     char oem[6];
@@ -55,9 +55,9 @@ typedef struct acpi_xsdp_t {
     uint32_t length;
     uint64_t xsdt;
     uint8_t extended_checksum;
-} __attribute__((packed)) acpi_xsdp_t;
+} __attribute__((packed)) lai_acpi_xsdp_t;
 
-typedef struct acpi_header_t {
+typedef struct lai_acpi_header_t {
     char signature[4];
     uint32_t length;
     uint8_t revision;
@@ -67,28 +67,28 @@ typedef struct acpi_header_t {
     uint32_t oem_revision;
     uint32_t creator_id;
     uint32_t creator_revision;
-} __attribute__((packed)) acpi_header_t;
+} __attribute__((packed)) lai_acpi_header_t;
 
-typedef struct acpi_rsdt_t {
-    acpi_header_t header;
+typedef struct lai_acpi_rsdt_t {
+    lai_acpi_header_t header;
     uint32_t tables[];
-} __attribute__((packed)) acpi_rsdt_t;
+} __attribute__((packed)) lai_acpi_rsdt_t;
 
-typedef struct acpi_xsdt_t {
-    acpi_header_t header;
+typedef struct lai_acpi_xsdt_t {
+    lai_acpi_header_t header;
     uint64_t tables[];
-} __attribute__((packed)) acpi_xsdt_t;
+} __attribute__((packed)) lai_acpi_xsdt_t;
 
-typedef struct acpi_gas_t {
+typedef struct lai_acpi_gas_t {
     uint8_t address_space;
     uint8_t bit_width;
     uint8_t bit_offset;
     uint8_t access_size;
     uint64_t base;
-} __attribute__((packed)) acpi_gas_t;
+} __attribute__((packed)) lai_acpi_gas_t;
 
-typedef struct acpi_fadt_t {
-    acpi_header_t header;
+typedef struct lai_acpi_fadt_t {
+    lai_acpi_header_t header;
     uint32_t firmware_control;
     uint32_t dsdt; // pointer to dsdt
 
@@ -134,7 +134,7 @@ typedef struct acpi_fadt_t {
     uint8_t reserved2;
     uint32_t flags;
 
-    acpi_gas_t reset_register;
+    lai_acpi_gas_t reset_register;
     uint8_t reset_command;
     uint16_t arm_boot_flags;
     uint8_t minor_version;
@@ -142,30 +142,30 @@ typedef struct acpi_fadt_t {
     uint64_t x_firmware_control;
     uint64_t x_dsdt;
 
-    acpi_gas_t x_pm1a_event_block;
-    acpi_gas_t x_pm1b_event_block;
-    acpi_gas_t x_pm1a_control_block;
-    acpi_gas_t x_pm1b_control_block;
-    acpi_gas_t x_pm2_control_block;
-    acpi_gas_t x_pm_timer_block;
-    acpi_gas_t x_gpe0_block;
-    acpi_gas_t x_gpe1_block;
-} __attribute__((packed)) acpi_fadt_t;
+    lai_acpi_gas_t x_pm1a_event_block;
+    lai_acpi_gas_t x_pm1b_event_block;
+    lai_acpi_gas_t x_pm1a_control_block;
+    lai_acpi_gas_t x_pm1b_control_block;
+    lai_acpi_gas_t x_pm2_control_block;
+    lai_acpi_gas_t x_pm_timer_block;
+    lai_acpi_gas_t x_gpe0_block;
+    lai_acpi_gas_t x_gpe1_block;
+} __attribute__((packed)) lai_acpi_fadt_t;
 
-typedef struct acpi_ecdt_t {
-    acpi_header_t header;
-    acpi_gas_t ec_control;
-    acpi_gas_t ec_data;
+typedef struct lai_acpi_ecdt_t {
+    lai_acpi_header_t header;
+    lai_acpi_gas_t ec_control;
+    lai_acpi_gas_t ec_data;
     uint32_t uid;
     uint8_t gpe_bit;
     uint8_t ec_id[];
-} __attribute__((packed)) acpi_ecdt_t;
+} __attribute__((packed)) lai_acpi_ecdt_t;
 
-typedef struct acpi_aml_t // AML tables, DSDT and SSDT
+typedef struct lai_acpi_aml_t // AML tables, DSDT and SSDT
 {
-    acpi_header_t header;
+    lai_acpi_header_t header;
     uint8_t data[];
-} __attribute__((packed)) acpi_aml_t;
+} __attribute__((packed)) lai_acpi_aml_t;
 
 #ifdef __cplusplus
 }

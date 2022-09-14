@@ -33,7 +33,7 @@ extern "C" {
 #define ACPI_EXTENDED_IRQ_SHARED 0x08
 #define ACPI_EXTENDED_IRQ_WAKE 0x10
 
-typedef struct acpi_resource_t {
+typedef struct lai_acpi_resource_t {
     uint8_t type;
 
     uint64_t base; // valid for everything
@@ -45,21 +45,21 @@ typedef struct acpi_resource_t {
     uint8_t bit_offset; // -- generic registers
 
     uint8_t irq_flags; // valid for IRQs
-} acpi_resource_t;
+} lai_acpi_resource_t;
 
-typedef struct acpi_small_irq_t {
+typedef struct lai_acpi_small_irq_t {
     uint8_t id;
     uint16_t irq_mask;
     uint8_t config;
-} __attribute__((packed)) acpi_small_irq_t;
+} __attribute__((packed)) lai_acpi_small_irq_t;
 
-typedef struct acpi_large_irq_t {
+typedef struct lai_acpi_large_irq_t {
     uint8_t id;
     uint16_t size;
     uint8_t config;
     uint8_t length;
     uint32_t irq;
-} __attribute__((packed)) acpi_large_irq_t;
+} __attribute__((packed)) lai_acpi_large_irq_t;
 
 #ifdef __cplusplus
 }

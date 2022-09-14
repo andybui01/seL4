@@ -67,13 +67,13 @@ typedef struct lai_variable_t {
 
 struct lai_string_head {
     lai_rc_t rc;
-    size_t capacity;
+    word_t capacity;
     char *content;
 };
 
 struct lai_buffer_head {
     lai_rc_t rc;
-    size_t size;
+    word_t size;
     uint8_t *content;
 };
 
@@ -90,10 +90,10 @@ __attribute__((always_inline)) inline char *lai_exec_string_access(lai_variable_
 }
 
 // Returns the size of a string.
-size_t lai_exec_string_length(lai_variable_t *str);
+word_t lai_exec_string_length(lai_variable_t *str);
 
 // Returns the size of a buffer.
-__attribute__((always_inline)) inline size_t lai_exec_buffer_size(lai_variable_t *buffer) {
+__attribute__((always_inline)) inline word_t lai_exec_buffer_size(lai_variable_t *buffer) {
     LAI_ENSURE(buffer->type == LAI_BUFFER);
     return buffer->buffer_ptr->size;
 }
@@ -105,23 +105,23 @@ __attribute__((always_inline)) inline void *lai_exec_buffer_access(lai_variable_
 }
 
 // Returns the size of a package.
-__attribute__((always_inline)) inline size_t lai_exec_pkg_size(lai_variable_t *object) {
+__attribute__((always_inline)) inline word_t lai_exec_pkg_size(lai_variable_t *object) {
     // TODO: Ensure that this is a package.
     return object->pkg_ptr->size;
 }
 
 // Helper functions for lai_exec_pkg_load()/lai_exec_pkg_store(), for internal interpreter use.
-void lai_exec_pkg_var_load(lai_variable_t *out, struct lai_pkg_head *head, size_t i);
-void lai_exec_pkg_var_store(lai_variable_t *in, struct lai_pkg_head *head, size_t i);
+void lai_exec_pkg_var_load(lai_variable_t *out, struct lai_pkg_head *head, word_t i);
+void lai_exec_pkg_var_store(lai_variable_t *in, struct lai_pkg_head *head, word_t i);
 
 // Load/store values from/to packages.
 __attribute__((always_inline)) inline void lai_exec_pkg_load(lai_variable_t *out,
-                                                             lai_variable_t *pkg, size_t i) {
+                                                             lai_variable_t *pkg, word_t i) {
     LAI_ENSURE(pkg->type == LAI_PACKAGE);
     lai_exec_pkg_var_load(out, pkg->pkg_ptr, i);
 }
 __attribute__((always_inline)) inline void lai_exec_pkg_store(lai_variable_t *in,
-                                                              lai_variable_t *pkg, size_t i) {
+                                                              lai_variable_t *pkg, word_t i) {
     LAI_ENSURE(pkg->type == LAI_PACKAGE);
     lai_exec_pkg_var_store(in, pkg->pkg_ptr, i);
 }

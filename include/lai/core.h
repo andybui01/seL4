@@ -6,8 +6,7 @@
 #pragma once
 
 #include <stdarg.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <types.h>
 
 #include <acpispec/hw.h>
 #include <acpispec/resources.h>
@@ -33,13 +32,13 @@ struct lai_instance {
     lai_nsnode_t *root_node;
 
     lai_nsnode_t **ns_array;
-    size_t ns_size;
-    size_t ns_capacity;
+    word_t ns_size;
+    word_t ns_capacity;
 
     int acpi_revision;
     int trace;
 
-    acpi_fadt_t *fadt;
+    lai_acpi_fadt_t *fadt;
 };
 
 struct lai_instance *lai_current_instance();
@@ -50,11 +49,11 @@ void lai_finalize_state(lai_state_t *);
 #define LAI_CLEANUP_STATE __attribute__((cleanup(lai_finalize_state)))
 
 struct lai_ns_iterator {
-    size_t i;
+    word_t i;
 };
 
 struct lai_ns_child_iterator {
-    size_t i;
+    word_t i;
     lai_nsnode_t *parent;
 };
 
@@ -81,9 +80,9 @@ void lai_create_namespace(void);
 char *lai_stringify_node_path(lai_nsnode_t *);
 lai_nsnode_t *lai_resolve_path(lai_nsnode_t *, const char *);
 lai_nsnode_t *lai_resolve_search(lai_nsnode_t *, const char *);
-lai_nsnode_t *lai_get_device(size_t);
+lai_nsnode_t *lai_get_device(word_t);
 int lai_check_device_pnp_id(lai_nsnode_t *, lai_variable_t *, lai_state_t *);
-lai_nsnode_t *lai_enum(char *, size_t);
+lai_nsnode_t *lai_enum(char *, word_t);
 void lai_eisaid(lai_variable_t *, const char *);
 lai_nsnode_t *lai_ns_iterate(struct lai_ns_iterator *);
 lai_nsnode_t *lai_ns_child_iterate(struct lai_ns_child_iterator *);
@@ -114,23 +113,23 @@ enum lai_object_type {
     LAI_TYPE_DEVICE,
 };
 
-lai_api_error_t lai_create_string(lai_variable_t *, size_t);
+lai_api_error_t lai_create_string(lai_variable_t *, word_t);
 lai_api_error_t lai_create_c_string(lai_variable_t *, const char *);
-lai_api_error_t lai_create_buffer(lai_variable_t *, size_t);
-lai_api_error_t lai_create_pkg(lai_variable_t *, size_t);
+lai_api_error_t lai_create_buffer(lai_variable_t *, word_t);
+lai_api_error_t lai_create_pkg(lai_variable_t *, word_t);
 
 enum lai_object_type lai_obj_get_type(lai_variable_t *object);
 lai_api_error_t lai_obj_get_integer(lai_variable_t *, uint64_t *);
-lai_api_error_t lai_obj_get_pkg(lai_variable_t *, size_t, lai_variable_t *);
+lai_api_error_t lai_obj_get_pkg(lai_variable_t *, word_t, lai_variable_t *);
 lai_api_error_t lai_obj_get_handle(lai_variable_t *, lai_nsnode_t **);
 
-lai_api_error_t lai_obj_resize_string(lai_variable_t *, size_t);
-lai_api_error_t lai_obj_resize_buffer(lai_variable_t *, size_t);
-lai_api_error_t lai_obj_resize_pkg(lai_variable_t *, size_t);
+lai_api_error_t lai_obj_resize_string(lai_variable_t *, word_t);
+lai_api_error_t lai_obj_resize_buffer(lai_variable_t *, word_t);
+lai_api_error_t lai_obj_resize_pkg(lai_variable_t *, word_t);
 
 lai_api_error_t lai_obj_to_buffer(lai_variable_t *, lai_variable_t *);
 lai_api_error_t lai_mutate_buffer(lai_variable_t *, lai_variable_t *);
-lai_api_error_t lai_obj_to_string(lai_variable_t *, lai_variable_t *, size_t);
+lai_api_error_t lai_obj_to_string(lai_variable_t *, lai_variable_t *, word_t);
 lai_api_error_t lai_obj_to_decimal_string(lai_variable_t *, lai_variable_t *);
 lai_api_error_t lai_obj_to_hex_string(lai_variable_t *, lai_variable_t *);
 lai_api_error_t lai_mutate_string(lai_variable_t *, lai_variable_t *);
