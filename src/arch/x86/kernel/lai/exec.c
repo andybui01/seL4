@@ -1398,8 +1398,8 @@ static lai_api_error_t lai_exec_process(lai_state_t *state) {
 
     // PC relative to the start of the table.
     // This matches the offsets in the output of 'iasl -l'.
-    word_t table_pc = sizeof(acpi_header_t) + (method - amls->table->data) + opcode_pc;
-    word_t table_limit_pc = sizeof(acpi_header_t) + (method - amls->table->data) + block->limit;
+    word_t table_pc = sizeof(lai_acpi_header_t) + (method - amls->table->data) + opcode_pc;
+    word_t table_limit_pc = sizeof(lai_acpi_header_t) + (method - amls->table->data) + block->limit;
 
     // This would be an interpreter bug.
     if (block->pc > block->limit)
@@ -1942,8 +1942,8 @@ static lai_api_error_t lai_exec_parse(int parse_mode, lai_state_t *state) {
 
     // PC relative to the start of the table.
     // This matches the offsets in the output of 'iasl -l'.
-    word_t table_pc = sizeof(acpi_header_t) + (method - amls->table->data) + opcode_pc;
-    word_t table_limit_pc = sizeof(acpi_header_t) + (method - amls->table->data) + block->limit;
+    word_t table_pc = sizeof(lai_acpi_header_t) + (method - amls->table->data) + opcode_pc;
+    word_t table_limit_pc = sizeof(lai_acpi_header_t) + (method - amls->table->data) + block->limit;
 
     if (!(pc < block->limit))
         lai_panic("execution escaped out of code range"
@@ -3654,7 +3654,7 @@ lai_api_error_t lai_populate(lai_nsnode_t *parent, struct lai_aml_segment *amls,
         || lai_exec_reserve_stack(state))
         return LAI_ERROR_OUT_OF_MEMORY;
 
-    word_t size = amls->table->header.length - sizeof(acpi_header_t);
+    word_t size = amls->table->header.length - sizeof(lai_acpi_header_t);
 
     struct lai_ctxitem *populate_ctxitem = lai_exec_push_ctxstack(state);
     populate_ctxitem->amls = amls;

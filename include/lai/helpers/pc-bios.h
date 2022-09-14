@@ -15,12 +15,12 @@ struct lai_rsdp_info {
     // ACPI version (1 or 2).
     int acpi_version;
     // Physical addresses of RSDP and RSDT.
-    uintptr_t rsdp_address;
-    uintptr_t rsdt_address;
-    uintptr_t xsdt_address;
+    word_t rsdp_address;
+    word_t rsdt_address;
+    word_t xsdt_address;
 };
 
-lai_api_error_t lai_bios_detect_rsdp_within(uintptr_t base, word_t length,
+lai_api_error_t lai_bios_detect_rsdp_within(word_t base, word_t length,
                                             struct lai_rsdp_info *info);
 
 lai_api_error_t lai_bios_detect_rsdp(struct lai_rsdp_info *info);

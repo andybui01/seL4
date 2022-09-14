@@ -438,7 +438,7 @@ static void lai_perform_indexfield_write(lai_nsnode_t *opregion, word_t access_s
     lai_write_field(data_field, &src); // Write data register.
 }
 
-void lai_read_field_internal(uint8_t *destination, lai_nsnode_t *field) {
+static void lai_read_field_internal(uint8_t *destination, lai_nsnode_t *field) {
     word_t access_size = lai_calculate_access_width(field);
 
     uint64_t offset = (field->fld_offset & ~(access_size - 1)) / 8;
@@ -447,7 +447,7 @@ void lai_read_field_internal(uint8_t *destination, lai_nsnode_t *field) {
     while (progress < field->fld_size) {
         uint64_t bit_offset = (field->fld_offset + progress) & (access_size - 1);
         word_t access_bits = LAI_MIN(field->fld_size - progress, access_size - bit_offset);
-        uint64_t mask = (UINT64_C(1) << access_bits) - 1ull;
+        uint64_t mask = (1ull << access_bits) - 1ull;
 
         uint64_t value = 0;
         if (field->type == LAI_NAMESPACE_FIELD || field->type == LAI_NAMESPACE_BANKFIELD) {
@@ -467,7 +467,7 @@ void lai_read_field_internal(uint8_t *destination, lai_nsnode_t *field) {
     }
 }
 
-void lai_write_field_internal(uint8_t *source, lai_nsnode_t *field) {
+static void lai_write_field_internal(uint8_t *source, lai_nsnode_t *field) {
     word_t access_size = lai_calculate_access_width(field);
 
     uint64_t offset = (field->fld_offset & ~(access_size - 1)) / 8;
@@ -476,7 +476,7 @@ void lai_write_field_internal(uint8_t *source, lai_nsnode_t *field) {
     while (progress < field->fld_size) {
         uint64_t bit_offset = (field->fld_offset + progress) & (access_size - 1);
         word_t access_bits = LAI_MIN(field->fld_size - progress, access_size - bit_offset);
-        word_t mask = ((UINT64_C(1) << access_bits) - 1) << bit_offset;
+        word_t mask = ((1ull << access_bits) - 1) << bit_offset;
 
         word_t write_flag = (field->fld_flags >> 5) & 0x0F;
 
@@ -558,7 +558,7 @@ void lai_write_field(lai_nsnode_t *field, lai_variable_t *source) {
     }
 }
 
-void lai_read_bankfield(lai_variable_t *destination, lai_nsnode_t *field) {
+static void lai_read_bankfield(lai_variable_t *destination, lai_nsnode_t *field) {
     LAI_CLEANUP_VAR lai_variable_t bank = LAI_VAR_INITIALIZER;
     bank.type = LAI_INTEGER;
     bank.integer = field->fld_bkf_value;
@@ -567,7 +567,7 @@ void lai_read_bankfield(lai_variable_t *destination, lai_nsnode_t *field) {
     lai_read_field(destination, field);
 }
 
-void lai_write_bankfield(lai_nsnode_t *field, lai_variable_t *source) {
+static void lai_write_bankfield(lai_nsnode_t *field, lai_variable_t *source) {
     LAI_CLEANUP_VAR lai_variable_t bank = LAI_VAR_INITIALIZER;
     bank.type = LAI_INTEGER;
     bank.integer = field->fld_bkf_value;

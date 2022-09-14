@@ -506,7 +506,7 @@ void lai_create_namespace(void) {
 
     // Load all SSDTs.
     word_t index = 0;
-    acpi_aml_t *ssdt_table;
+    lai_acpi_aml_t *ssdt_table;
     while ((ssdt_table = laihost_scan("SSDT", index))) {
         void *ssdt_amls = lai_load_table(ssdt_table, index);
         lai_init_state(&state);
@@ -518,7 +518,7 @@ void lai_create_namespace(void) {
     // The PSDT is treated the same way as the SSDT.
     // Scan for PSDTs too for compatibility with some ACPI 1.0 PCs.
     index = 0;
-    acpi_aml_t *psdt_table;
+    lai_acpi_aml_t *psdt_table;
     while ((psdt_table = laihost_scan("PSDT", index))) {
         void *psdt_amls = lai_load_table(psdt_table, index);
         lai_init_state(&state);

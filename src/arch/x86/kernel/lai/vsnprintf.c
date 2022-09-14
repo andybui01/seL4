@@ -155,7 +155,7 @@ void lai_vsnprintf(char *buf, word_t len, const char *fmt, va_list arg) {
 
             case 'P':
             case 'p': {
-                i = (uintptr_t)(va_arg(arg, void *));
+                i = (word_t)(va_arg(arg, void *));
 
                 char *c = num_fmt(i, 16, padding, pad_with, 0, upper, 16);
                 while (*c) {
