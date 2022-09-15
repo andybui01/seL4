@@ -262,7 +262,7 @@ void lai_operand_mutate(lai_state_t *state, struct lai_operand *dest, lai_variab
             else {
                 switch (object->type) {
                     case LAI_INTEGER:
-                        lai_debug("Debug(): integer(%ld)", object->integer);
+                        lai_debug("Debug(): integer(%lld)", object->integer);
                         break;
                     case LAI_STRING:
                         lai_debug("Debug(): string(\"%s\")", lai_exec_string_access(object));
@@ -346,7 +346,7 @@ void lai_operand_emplace(lai_state_t *state, struct lai_operand *dest, lai_varia
             else {
                 switch (object->type) {
                     case LAI_INTEGER:
-                        lai_debug("Debug(): integer(%ld)", object->integer);
+                        lai_debug("Debug(): integer(%lld)", object->integer);
                         break;
                     case LAI_STRING:
                         lai_debug("Debug(): string(\"%s\")", lai_exec_string_access(object));

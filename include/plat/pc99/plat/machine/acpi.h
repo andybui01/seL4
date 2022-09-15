@@ -48,9 +48,25 @@ typedef struct acpi_rsdt {
     uint32_t entry[1];
 } PACKED acpi_rsdt_t;
 
+/* AML Table */
+typedef struct acpi_aml {
+    acpi_header_t header;
+    uint8_t data[];
+} PACKED acpi_aml_t;
+
 /* Attemps to initialize acpi by searching for a valid RSDP block. If found a copy is placed in rsdp_data
  * and true is returned, otherwise the contents of rsdp_data are undefined and false is returned. */
 bool_t acpi_init(acpi_rsdp_t *rsdp_data);
+
+BOOT_CODE uint8_t acpi_calc_checksum(char *start, uint32_t length);
+
+enum acpi_type {
+    ACPI_RSDP,
+    ACPI_RSDT,
+    ACPI_AML
+};
+
+BOOT_CODE void *acpi_table_init(void *entry, enum acpi_type table_type);
 
 /* Validates that a given rsdp block is in fact valid */
 BOOT_CODE bool_t acpi_validate_rsdp(acpi_rsdp_t *acpi_rsdp);

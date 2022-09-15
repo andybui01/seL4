@@ -4,6 +4,7 @@
  */
 
 #include <lai/core.h>
+#include <lai/host.h>
 
 #include <lai/internal/aml_opcodes.h>
 #include <lai/internal/eval.h>
@@ -1078,7 +1079,7 @@ static lai_api_error_t lai_exec_reduce_op(int opcode, lai_state_t *state,
                 LAI_ENSURE(!error);
             } else {
                 LAI_CLEANUP_FREE_STRING char *path = lai_stringify_node_path(node);
-                lai_warn("Unhandled Notify(%s, 0x%lx)", path, code.integer);
+                lai_warn("Unhandled Notify(%s, 0x%llx)", path, code.integer);
             }
             break;
         }
@@ -1163,7 +1164,7 @@ static lai_api_error_t lai_exec_reduce_op(int opcode, lai_state_t *state,
             if (!fatal_arg.integer)
                 fatal_arg.integer = 0;
 
-            lai_panic("FatalOp in AML, Type: %02lx, Data: %08lX, Arg: %lx\n", fatal_type.integer,
+            lai_panic("FatalOp in AML, Type: %02llx, Data: %08llX, Arg: %llx\n", fatal_type.integer,
                       fatal_data.integer, fatal_arg.integer);
             break;
         }
@@ -2013,8 +2014,10 @@ static lai_api_error_t lai_exec_parse(int parse_mode, lai_state_t *state) {
             path = lai_stringify_amlname(&amln);
 
         if (parse_mode == LAI_DATA_MODE) {
-            if (instance->trace & LAI_TRACE_OP)
+            if (instance->trace & LAI_TRACE_OP) {
+                path = lai_stringify_amlname(&amln);
                 lai_debug("parsing name %s [@ 0x%lx]", path, table_pc);
+            }
 
             if (want_result) {
                 struct lai_operand *opstack_res = lai_exec_push_opstack(state);
@@ -2024,8 +2027,10 @@ static lai_api_error_t lai_exec_parse(int parse_mode, lai_state_t *state) {
                 opstack_res->object.unres_aml = method + opcode_pc;
             }
         } else if (!(lai_mode_flags[parse_mode] & LAI_MF_RESOLVE)) {
-            if (instance->trace & LAI_TRACE_OP)
+            if (instance->trace & LAI_TRACE_OP) {
+                path = lai_stringify_amlname(&amln);
                 lai_debug("parsing name %s [@ 0x%lx]", path, table_pc);
+            }
 
             if (want_result) {
                 struct lai_operand *opstack_res = lai_exec_push_opstack(state);
@@ -2037,8 +2042,10 @@ static lai_api_error_t lai_exec_parse(int parse_mode, lai_state_t *state) {
             lai_nsnode_t *handle = lai_do_resolve(ctx_handle, &amln);
             if (!handle) {
                 if (lai_mode_flags[parse_mode] & LAI_MF_NULLABLE) {
-                    if (instance->trace & LAI_TRACE_OP)
+                    if (instance->trace & LAI_TRACE_OP) {
+                        path = lai_stringify_amlname(&amln);
                         lai_debug("parsing non-existant name %s [@ 0x%lx]", path, table_pc);
+                    }
 
                     if (want_result) {
                         struct lai_operand *opstack_res = lai_exec_push_opstack(state);
@@ -2052,8 +2059,10 @@ static lai_api_error_t lai_exec_parse(int parse_mode, lai_state_t *state) {
                 }
             } else if (handle->type == LAI_NAMESPACE_METHOD
                        && (lai_mode_flags[parse_mode] & LAI_MF_INVOKE)) {
-                if (instance->trace & LAI_TRACE_OP)
+                if (instance->trace & LAI_TRACE_OP) {
+                    path = lai_stringify_amlname(&amln);
                     lai_debug("parsing invocation %s [@ 0x%lx]", path, table_pc);
+                }
 
                 lai_stackitem_t *node_item = lai_exec_push_stack(state);
                 node_item->kind = LAI_INVOKE_STACKITEM;
@@ -2066,8 +2075,10 @@ static lai_api_error_t lai_exec_parse(int parse_mode, lai_state_t *state) {
                 opstack_method->handle = handle;
             } else if (lai_mode_flags[parse_mode] & LAI_MF_INVOKE) {
                 // TODO: Get rid of this case again!
-                if (instance->trace & LAI_TRACE_OP)
+                if (instance->trace & LAI_TRACE_OP) {
+                    path = lai_stringify_amlname(&amln);
                     lai_debug("parsing name %s [@ 0x%lx]", path, table_pc);
+                }
 
                 LAI_CLEANUP_VAR lai_variable_t result = LAI_VAR_INITIALIZER;
                 lai_exec_access(&result, handle);
@@ -2078,8 +2089,10 @@ static lai_api_error_t lai_exec_parse(int parse_mode, lai_state_t *state) {
                     lai_var_move(&opstack_res->object, &result);
                 }
             } else {
-                if (instance->trace & LAI_TRACE_OP)
+                if (instance->trace & LAI_TRACE_OP) {
+                    path = lai_stringify_amlname(&amln);
                     lai_debug("parsing name %s [@ 0x%lx]", path, table_pc);
+                }
 
                 if (want_result) {
                     struct lai_operand *opstack_method = lai_exec_push_opstack(state);

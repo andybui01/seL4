@@ -13,7 +13,12 @@ extern "C" {
 
 word_t lai_strlen(const char *);
 
-int memcmp(const void *, const void *, word_t);
+static inline int memcmp(const void *vl, const void *vr, word_t n)
+{
+	const unsigned char *l=vl, *r=vr;
+	for (; n && *l == *r; n--, l++, r++);
+	return n ? *l-*r : 0;
+}
 
 //---------------------------------------------------------------------------------------
 // Debugging and logging functions.

@@ -63,6 +63,6 @@ int lai_do_rev_method(lai_variable_t *args, lai_variable_t *result) {
     result->type = LAI_INTEGER;
     result->integer = lai_implemented_version;
 
-    lai_debug("_REV returned %ld", result->integer);
+    lai_debug("_REV returned %lld", result->integer);
     return 0;
 }

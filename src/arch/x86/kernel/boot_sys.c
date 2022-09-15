@@ -493,6 +493,10 @@ static BOOT_CODE bool_t try_boot_sys(void)
     }
 
     if (config_set(CONFIG_IRQ_IOAPIC)) {
+        printf("Init ioapic\n");
+        laihost_set_rsdp(&boot_state.acpi_rsdp);
+        lai_set_acpi_revision(boot_state.acpi_rsdp.revision);
+        lai_create_namespace();
         ioapic_init(1, boot_state.cpus, boot_state.num_ioapic);
     }
 
@@ -735,4 +739,3 @@ BOOT_CODE VISIBLE void boot_sys(
     schedule();
     activateThread();
 }
-

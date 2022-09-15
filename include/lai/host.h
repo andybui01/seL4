@@ -8,6 +8,8 @@
 #include <stdarg.h>
 #include <types.h>
 
+#include <plat/machine/acpi.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,6 +22,12 @@ typedef struct lai_variable_t lai_variable_t;
 
 #define LAI_DEBUG_LOG 1
 #define LAI_WARN_LOG 2
+
+/* ACPI system description tables */
+#define LAI_FADT 0
+#define LAI_DSDT 1
+#define LAI_SSDT 2
+#define LAI_PSDT 3
 
 struct lai_sync_state {
     // Used internally by LAI. Read-only for the host.
@@ -34,6 +42,8 @@ struct lai_sync_state {
     void *p;
 };
 
+void laihost_set_rsdp(acpi_rsdp_t *acpi_rsdp);
+
 // OS-specific functions.
 void *laihost_malloc(word_t);
 void *laihost_realloc(void *, word_t newsize, word_t oldsize);
@@ -42,7 +52,7 @@ void laihost_free(void *, word_t);
 __attribute__((weak)) void laihost_log(int, const char *);
 __attribute__((weak, noreturn)) void laihost_panic(const char *);
 
-__attribute__((weak)) void *laihost_scan(const char *, word_t);
+__attribute__((weak)) void *laihost_scan(int, word_t);
 __attribute__((weak)) void *laihost_map(word_t, word_t);
 __attribute__((weak)) void laihost_unmap(void *, word_t);
 __attribute__((weak)) void laihost_outb(uint16_t, uint8_t);

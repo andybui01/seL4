@@ -377,6 +377,7 @@ add_sources(
         kernel/cmdline.c
         kernel/ept.c
         kernel/thread.c
+        kernel/lai/host.c
         kernel/lai/error.c
         kernel/lai/eval.c
         kernel/lai/exec.c

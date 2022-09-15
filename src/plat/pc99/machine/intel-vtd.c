@@ -373,7 +373,7 @@ BOOT_CODE static void vtd_create_context_table(uint8_t bus, acpi_rmrr_list_t *rm
     word_t i;
     vtd_cte_t *vtd_context_table = (vtd_cte_t *) it_alloc_paging();
 
-    printf("IOMMU: Create VTD context table for PCI bus 0x%x (pptr=%p)\n", bus, vtd_context_table);
+    // printf("IOMMU: Create VTD context table for PCI bus 0x%x (pptr=%p)\n", bus, vtd_context_table);
     flushCacheRange(vtd_context_table, VTD_CT_SIZE_BITS);
 
     x86KSvtdRootTable[bus] =

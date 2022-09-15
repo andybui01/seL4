@@ -13,6 +13,7 @@
 #include <lai/internal/libc.h>
 #include <lai/internal/ns_impl.h>
 #include <lai/internal/util-hash.h>
+#include <lai/internal-util.h>
 
 static int debug_resolution = 0;
 
@@ -484,7 +485,7 @@ void lai_create_namespace(void) {
     struct lai_instance *instance = lai_current_instance();
 
     // we need the FADT
-    instance->fadt = laihost_scan("FACP", 0);
+    instance->fadt = laihost_scan(LAI_FADT, 0);
     if (!instance->fadt) {
         lai_panic("unable to find ACPI FADT.");
     }
@@ -495,7 +496,7 @@ void lai_create_namespace(void) {
     lai_state_t state;
 
     // Load the DSDT.
-    void *dsdt_table = laihost_scan("DSDT", 0);
+    void *dsdt_table = laihost_scan(LAI_DSDT, 0);
     if (!dsdt_table)
         lai_panic("unable to find ACPI DSDT.");
 
@@ -507,7 +508,7 @@ void lai_create_namespace(void) {
     // Load all SSDTs.
     word_t index = 0;
     lai_acpi_aml_t *ssdt_table;
-    while ((ssdt_table = laihost_scan("SSDT", index))) {
+    while ((ssdt_table = laihost_scan(LAI_SSDT, index))) {
         void *ssdt_amls = lai_load_table(ssdt_table, index);
         lai_init_state(&state);
         lai_populate(root_node, ssdt_amls, &state);
@@ -519,7 +520,7 @@ void lai_create_namespace(void) {
     // Scan for PSDTs too for compatibility with some ACPI 1.0 PCs.
     index = 0;
     lai_acpi_aml_t *psdt_table;
-    while ((psdt_table = laihost_scan("PSDT", index))) {
+    while ((psdt_table = laihost_scan(LAI_PSDT, index))) {
         void *psdt_amls = lai_load_table(psdt_table, index);
         lai_init_state(&state);
         lai_populate(root_node, psdt_amls, &state);
@@ -550,6 +551,8 @@ lai_nsnode_t *lai_resolve_path(lai_nsnode_t *ctx_handle, const char *path) {
     lai_nsnode_t *current = ctx_handle;
     if (!current)
         current = lai_current_instance()->root_node;
+
+    printf("Got root node\n");
 
     if (*path == '\\') {
         while (current->parent)

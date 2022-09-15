@@ -41,7 +41,7 @@ struct lai_instance {
     lai_acpi_fadt_t *fadt;
 };
 
-struct lai_instance *lai_current_instance();
+struct lai_instance *lai_current_instance(void);
 
 void lai_init_state(lai_state_t *);
 void lai_finalize_state(lai_state_t *);
@@ -89,7 +89,7 @@ lai_nsnode_t *lai_ns_child_iterate(struct lai_ns_child_iterator *);
 
 // Namespace functions.
 
-lai_nsnode_t *lai_ns_get_root();
+lai_nsnode_t *lai_ns_get_root(void);
 lai_nsnode_t *lai_ns_get_parent(lai_nsnode_t *node);
 lai_nsnode_t *lai_ns_get_child(lai_nsnode_t *parent, const char *name);
 lai_api_error_t lai_ns_override_notify(lai_nsnode_t *node,

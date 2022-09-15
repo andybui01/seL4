@@ -11,6 +11,9 @@
 #include <plat/machine/hardware.h>
 #include <plat/machine/ioapic.h>
 
+#include <lai/host.h>
+#include <lai/core.h>
+
 #define IOAPIC_REGSEL 0x00
 #define IOAPIC_WINDOW 0x10
 
@@ -71,6 +74,29 @@ static void single_ioapic_init(word_t ioapic, cpu_id_t delivery_cpu)
     }
 }
 
+static void aml_ioapic_enable(void)
+{
+    printf("%s\n", __func__);
+    lai_nsnode_t *handle;
+    lai_state_t state;
+    uint32_t mode = 1;
+
+    printf("resolving path...\n");
+    handle = lai_resolve_path(NULL, "\\_PIC");
+    assert(handle);
+
+    printf("init state...\n");
+    lai_init_state(&state);
+    LAI_CLEANUP_VAR lai_variable_t mode_object = LAI_VAR_INITIALIZER;
+    mode_object.type = LAI_INTEGER;
+    mode_object.integer = mode;
+
+    printf("evaluate...\n");
+    if (!lai_eval_largs(NULL, handle, &state, &mode_object, NULL))
+        lai_debug("evaluated \\._PIC(%d)", mode);
+    lai_finalize_state(&state);
+}
+
 static  cpu_id_t ioapic_target_cpu = 0;
 void ioapic_init(uint32_t num_nodes, cpu_id_t *cpu_list, uint32_t num_ioapic)
 {
@@ -82,6 +108,7 @@ void ioapic_init(uint32_t num_nodes, cpu_id_t *cpu_list, uint32_t num_ioapic)
         /* Init this ioapic */
         single_ioapic_init(ioapic, cpu_list[0]);
     }
+    aml_ioapic_enable();
 }
 
 void ioapic_mask(bool_t mask, uint32_t ioapic, uint32_t pin)

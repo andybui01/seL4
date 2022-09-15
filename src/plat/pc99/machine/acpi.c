@@ -13,11 +13,6 @@
 #include <plat/machine/acpi.h>
 #include <plat/machine/devices.h>
 
-enum acpi_type {
-    ACPI_RSDP,
-    ACPI_RSDT
-};
-
 /* DMA Remapping Reporting Table */
 typedef struct acpi_dmar {
     acpi_header_t header;
@@ -158,7 +153,7 @@ const char acpi_str_fadt[] = {'F', 'A', 'C', 'P', 0};
 const char acpi_str_apic[] = {'A', 'P', 'I', 'C', 0};
 const char acpi_str_dmar[] = {'D', 'M', 'A', 'R', 0};
 
-BOOT_CODE static uint8_t acpi_calc_checksum(char *start, uint32_t length)
+BOOT_CODE uint8_t acpi_calc_checksum(char *start, uint32_t length)
 {
     uint8_t checksum = 0;
 
@@ -184,7 +179,7 @@ BOOT_CODE static acpi_rsdp_t *acpi_get_rsdp(void)
     return NULL;
 }
 
-BOOT_CODE static void *acpi_table_init(void *entry, enum acpi_type table_type)
+BOOT_CODE void *acpi_table_init(void *entry, enum acpi_type table_type)
 {
     void *acpi_table;
     unsigned int pages_for_table;
@@ -208,6 +203,11 @@ BOOT_CODE static void *acpi_table_init(void *entry, enum acpi_type table_type)
     case ACPI_RSDT: { // RSDT, MADT, DMAR etc.
         acpi_rsdt_t *rsdt_entry = (acpi_rsdt_t *)entry;
         pages_for_table = (rsdt_entry->header.length + offset_in_page) / MASK(LARGE_PAGE_BITS) + 1;
+        break;
+    }
+    case ACPI_AML: { // DSDT and SSDT
+        acpi_aml_t *aml_entry = (acpi_aml_t *)entry;
+        pages_for_table = (aml_entry->header.length + offset_in_page) / MASK(LARGE_PAGE_BITS) + 1;
         break;
     }
     default:
