@@ -16,7 +16,14 @@
 #define TX_INTR_TRIGGER     BIT(31)
 #define UART_REG(mmio, x)   ((volatile uint32_t *)(mmio + (x)))
 
+static uint64_t uart_va = 0xc168000;
+
 #ifdef CONFIG_PRINTING
+void switch_kernel_uart(void)
+{
+    uart_va = UART_PPTR;
+}
+
 void uart_drv_putchar(unsigned char c)
 {
     uint32_t reg_val;
@@ -30,9 +37,9 @@ void uart_drv_putchar(unsigned char c)
         reg_val |= TX_FLUSH;
     }
 
-    while (*UART_REG(UART_PPTR, TCU_TX_REG) & TX_INTR_TRIGGER);
+    while (*UART_REG(uart_va, TCU_TX_REG) & TX_INTR_TRIGGER);
 
-    *UART_REG(UART_PPTR, TCU_TX_REG) = reg_val;
+    *UART_REG(uart_va, TCU_TX_REG) = reg_val;
 }
 #endif /* CONFIG_PRINTING */
 

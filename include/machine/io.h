@@ -126,3 +126,5 @@ static inline __attribute__((format(printf, 3, 4))) int snprintf(
  */
 
 #endif /* [not] CONFIG_PRINTING */
+
+void switch_kernel_uart(void);

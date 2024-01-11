@@ -211,7 +211,15 @@ BOOT_CODE static bool_t init_cpu(void)
     }
 #endif
 
+
+#ifdef CONFIG_ARCH_AARCH64
+    /* initialise CPU's exception vector table */
+    setVtable((pptr_t)arm_vector_table);
+#endif /* CONFIG_ARCH_AARCH64 */
+
     activate_kernel_vspace();
+
+    switch_kernel_uart();
     if (config_set(CONFIG_ARM_HYPERVISOR_SUPPORT)) {
         vcpu_boot_init();
     }
@@ -233,11 +241,6 @@ BOOT_CODE static bool_t init_cpu(void)
     stack_top |= getCurrentCPUIndex();
 #endif
     setKernelStack(stack_top);
-
-#ifdef CONFIG_ARCH_AARCH64
-    /* initialise CPU's exception vector table */
-    setVtable((pptr_t)arm_vector_table);
-#endif /* CONFIG_ARCH_AARCH64 */
 
     haveHWFPU = fpsimd_HWCapTest();
 
