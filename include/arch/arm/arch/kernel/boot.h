@@ -18,6 +18,7 @@ void init_kernel(
     sword_t pv_offset,
     vptr_t  v_entry,
     paddr_t dtb_addr_p,
-    uint32_t dtb_size
+    uint32_t dtb_size,
+    paddr_t elfloader_reg_p
 );
 

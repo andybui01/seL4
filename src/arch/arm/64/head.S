@@ -77,9 +77,10 @@
 
 .section .boot.text, "ax"
 BEGIN_FUNC(_start)
-    /* Save x4 and x5 so we don't clobber it */
+    /* Save x4, x5 and x6 so we don't clobber it */
     mov     x7, x4
     mov     x8, x5
+    mov     x21, x6
 
     /* Make sure interrupts are disabled */
     msr daifset, #DAIFSET_MASK
@@ -123,6 +124,7 @@ BEGIN_FUNC(_start)
     ldp     x4, x5, [sp], #16
     ldp     x2, x3, [sp], #16
     ldp     x0, x1, [sp], #16
+    mov     x6, x21
 
     /* Call bootstrapping implemented in C with parameters:
      *  x0: user image physical start address

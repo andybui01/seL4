@@ -39,6 +39,21 @@ BOOT_BSS static volatile int node_boot_lock;
 
 BOOT_BSS static region_t reserved[NUM_RESERVED_REGIONS];
 
+// the max numbers of the avaiable physical memory regions
+#define M_AVA_NUMS (64)
+//uefi's avaiable memory regions
+struct mem_info {
+    unsigned int nums;
+    p_region_t ava_regs[M_AVA_NUMS];
+};
+
+/* after kernel's mmu enabled, kernel can't access elfloader's data section.
+ * so we need a temp buffer to keep p_region_t data in the kernel before
+ * the mmu is enabled.
+ */
+static p_region_t BOOT_BSS k_ava_regs[M_AVA_NUMS];
+static int BOOT_BSS k_ava_nums = 0;
+
 BOOT_CODE static bool_t arch_init_freemem(p_region_t ui_p_reg,
                                           p_region_t dtb_p_reg,
                                           v_region_t it_v_reg,
@@ -109,10 +124,17 @@ BOOT_CODE static bool_t arch_init_freemem(p_region_t ui_p_reg,
         reserve_region(ui_p_reg);
     }
 
-    /* avail_p_regs comes from the auto-generated code */
-    return init_freemem(ARRAY_SIZE(avail_p_regs), avail_p_regs,
-                        index, reserved,
-                        it_v_reg, extra_bi_size_bits);
+    if (k_ava_nums) {
+        printf("Here\n");
+        return init_freemem(k_ava_nums, k_ava_regs,
+                            index, reserved,
+                            it_v_reg, extra_bi_size_bits);
+    } else {
+        /* avail_p_regs comes from the auto-generated code */
+        return init_freemem(ARRAY_SIZE(avail_p_regs), avail_p_regs,
+                            index, reserved,
+                            it_v_reg, extra_bi_size_bits);
+    }
 }
 
 
@@ -332,7 +354,8 @@ static BOOT_CODE bool_t try_init_kernel(
     sword_t pv_offset,
     vptr_t  v_entry,
     paddr_t dtb_phys_addr,
-    word_t  dtb_size
+    word_t  dtb_size,
+    paddr_t elfloader_reg_p
 )
 {
     cap_t root_cnode_cap;
@@ -360,6 +383,18 @@ static BOOT_CODE bool_t try_init_kernel(
     ipcbuf_vptr = ui_v_reg.end;
     bi_frame_vptr = ipcbuf_vptr + BIT(PAGE_BITS);
     extra_bi_frame_vptr = bi_frame_vptr + BIT(seL4_BootInfoFrameBits);
+
+    struct mem_info *mem_info = (struct mem_info *) elfloader_reg_p;
+    if (mem_info) {
+        if (mem_info->nums > M_AVA_NUMS) {
+            return false;
+        }
+
+        k_ava_nums = mem_info->nums;
+        if (k_ava_nums) {
+            memcpy(k_ava_regs, mem_info->ava_regs, sizeof(p_region_t) * k_ava_nums);
+        }
+    }
 
     /* setup virtual memory for the kernel */
     map_kernel_window();
@@ -632,7 +667,8 @@ BOOT_CODE VISIBLE void init_kernel(
     sword_t pv_offset,
     vptr_t  v_entry,
     paddr_t dtb_addr_p,
-    uint32_t dtb_size
+    uint32_t dtb_size,
+    paddr_t elfloader_reg_p
 )
 {
     bool_t result;
@@ -644,7 +680,8 @@ BOOT_CODE VISIBLE void init_kernel(
                                  ui_p_reg_end,
                                  pv_offset,
                                  v_entry,
-                                 dtb_addr_p, dtb_size);
+                                 dtb_addr_p, dtb_size,
+                                 elfloader_reg_p);
     } else {
         result = try_init_kernel_secondary_core();
     }
@@ -654,7 +691,8 @@ BOOT_CODE VISIBLE void init_kernel(
                              ui_p_reg_end,
                              pv_offset,
                              v_entry,
-                             dtb_addr_p, dtb_size);
+                             dtb_addr_p, dtb_size,
+                             elfloader_reg_p);
 
 #endif /* ENABLE_SMP_SUPPORT */
 
