@@ -223,6 +223,17 @@ config_option(
     DEPENDS "NOT KernelVerificationBuild; KernelSel4ArchAarch64"
 )
 
+config_option(
+    KernelUseElfloaderMemRegs USE_ELFLOADER_MEM_REGS
+    "In some cases, the DTB that is provided may not be the most accurate \
+    representation of physical memory at runtime. For now, this is mainly due to \
+    UEFI, which takes memory and providing the leftover regions for the kernel \
+    to use. If we want to account for this, let the elfloader construct the mem \
+    regions and use that instead."
+    DEFAULT OFF
+    DEPENDS "NOT KernelVerificationBuild; KernelSel4ArchAarch64"
+)
+
 if(KernelAArch32FPUEnableContextSwitch OR KernelSel4ArchAarch64)
     set(KernelHaveFPU ON)
 endif()

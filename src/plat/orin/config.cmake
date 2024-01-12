@@ -17,6 +17,8 @@ if(KernelPlatformOrin)
     set(KernelArmGicV3 ON)
     set(KernelArmMach "nvidia" CACHE INTERNAL "")
 
+    set(KernelUseElfloaderMemRegs ON)
+
     list(APPEND KernelDTSList "tools/dts/orin.dts" "src/plat/orin/overlay-orin.dts")
 
     declare_default_headers(

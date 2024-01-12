@@ -200,7 +200,7 @@ BOOT_CODE void map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_righ
                                                                                             attr_index);
 }
 
-BOOT_CODE void map_kernel_window(void)
+BOOT_CODE void map_kernel_window(word_t num_avail_p_regs, const p_region_t *avail_p_regs)
 {
 
     paddr_t paddr;
@@ -232,6 +232,33 @@ BOOT_CODE void map_kernel_window(void)
     }
 
     /* map the kernel window using large pages */
+#ifdef CONFIG_USE_ELFLOADER_MEM_REGS
+    printf("num regs: %lu\n", num_avail_p_regs);
+    assert(num_avail_p_regs > 0);
+    for (idx = 0; idx < num_avail_p_regs; idx++) {
+        paddr_t start = ROUND_DOWN(avail_p_regs[idx].start, seL4_LargePageBits);
+        paddr_t end = ROUND_UP(avail_p_regs[idx].end, seL4_LargePageBits);
+        vaddr = (pptr_t)paddr_to_pptr(start);
+
+        for (paddr = start; paddr < end; paddr += BIT(seL4_LargePageBits)) {
+            armKSGlobalKernelPDs[GET_KPT_INDEX(vaddr, KLVL_FRM_ARM_PT_LVL(1))][GET_KPT_INDEX(vaddr,
+                                                                                            KLVL_FRM_ARM_PT_LVL(2))] = pte_pte_page_new(
+    #ifdef CONFIG_ARM_HYPERVISOR_SUPPORT
+                                                                                                                            0, // XN
+    #else
+                                                                                                                            1, // UXN
+    #endif
+                                                                                                                            paddr,
+                                                                                                                            0,                        /* global */
+                                                                                                                            1,                        /* access flag */
+                                                                                                                            SMP_TERNARY(SMP_SHARE, 0),        /* Inner-shareable if SMP enabled, otherwise unshared */
+                                                                                                                            0,                        /* VMKernelOnly */
+                                                                                                                            NORMAL
+                                                                                                                        );
+            vaddr += BIT(seL4_LargePageBits);
+        }
+    }
+#else
     vaddr = PPTR_BASE;
     for (paddr = PADDR_BASE; paddr < PADDR_TOP; paddr += BIT(seL4_LargePageBits)) {
         armKSGlobalKernelPDs[GET_KPT_INDEX(vaddr, KLVL_FRM_ARM_PT_LVL(1))][GET_KPT_INDEX(vaddr,
@@ -250,6 +277,7 @@ BOOT_CODE void map_kernel_window(void)
                                                                                                                     );
         vaddr += BIT(seL4_LargePageBits);
     }
+#endif /* CONFIG_USE_ELFLOADER_MEM_REGS */
 
     /* put the PD into the PUD for device window */
     armKSGlobalKernelPUD[GET_KPT_INDEX(PPTR_TOP, KLVL_FRM_ARM_PT_LVL(1))] = pte_pte_table_new(

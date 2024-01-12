@@ -124,8 +124,7 @@ BOOT_CODE static bool_t arch_init_freemem(p_region_t ui_p_reg,
         reserve_region(ui_p_reg);
     }
 
-    if (k_ava_nums) {
-        printf("Here\n");
+    if (config_set(CONFIG_USE_ELFLOADER_MEM_REGS)) {
         return init_freemem(k_ava_nums, k_ava_regs,
                             index, reserved,
                             it_v_reg, extra_bi_size_bits);
@@ -400,7 +399,7 @@ static BOOT_CODE bool_t try_init_kernel(
     }
 
     /* setup virtual memory for the kernel */
-    map_kernel_window();
+    map_kernel_window(k_ava_nums, k_ava_regs);
 
     /* initialise the CPU */
     if (!init_cpu()) {
