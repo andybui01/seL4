@@ -281,7 +281,7 @@ config_string(
 config_string(
     KernelMaxNumBootinfoUntypedCaps MAX_NUM_BOOTINFO_UNTYPED_CAPS
     "Max number of bootinfo untyped caps"
-    DEFAULT 230
+    DEFAULT 260
     UNQUOTE
 )
 config_option(KernelFastpath FASTPATH "Enable IPC fastpath" DEFAULT ON)

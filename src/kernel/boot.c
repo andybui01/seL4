@@ -228,12 +228,9 @@ BOOT_CODE static void create_rootserver_objects(pptr_t start, v_region_t it_v_re
     compile_assert(invalid_seL4_ASIDPoolBits, seL4_ASIDPoolBits == seL4_PageBits);
     rootserver.asid_pool = alloc_rootserver_obj(seL4_ASIDPoolBits, 1);
     rootserver.ipc_buf = alloc_rootserver_obj(seL4_PageBits, 1);
-    /* The boot info size must be at least one page. Due to the hard-coded order
-     * of allocations used in the current implementation here, it can't be any
-     * bigger.
-     */
-    compile_assert(invalid_seL4_BootInfoFrameBits, seL4_BootInfoFrameBits == seL4_PageBits);
-    rootserver.boot_info = alloc_rootserver_obj(seL4_BootInfoFrameBits, 1);
+    /* The boot info size must be at least one page. */
+    compile_assert(invalid_seL4_BootInfoFrameBits, seL4_BootInfoFrameBits == seL4_PageBits + 1);
+    rootserver.boot_info = alloc_rootserver_obj(seL4_PageBits, 2);
 
     /* TCBs on aarch32 can be larger than page tables in certain configs */
 #if seL4_TCBBits >= seL4_PageTableBits
@@ -323,8 +320,11 @@ BOOT_CODE cap_t create_ipcbuf_frame_cap(cap_t root_cnode_cap, cap_t pd_cap, vptr
 BOOT_CODE void create_bi_frame_cap(cap_t root_cnode_cap, cap_t pd_cap, vptr_t vptr)
 {
     /* create a cap of it and write it into the root CNode */
-    cap_t cap = create_mapped_it_frame_cap(pd_cap, rootserver.boot_info, vptr, IT_ASID, false, false);
-    write_slot(SLOT_PTR(pptr_of_cap(root_cnode_cap), seL4_CapBootInfoFrame), cap);
+    for (int i = 0; i < 2; i++) {
+        cap_t cap = create_mapped_it_frame_cap(pd_cap, rootserver.boot_info + i * (BIT(PAGE_BITS)), vptr + i * (BIT(PAGE_BITS)), IT_ASID, false, false);
+        write_slot(SLOT_PTR(pptr_of_cap(root_cnode_cap), seL4_CapBootInfoFrame), cap);
+    }
+
 }
 
 BOOT_CODE word_t calculate_extra_bi_size_bits(word_t extra_size)

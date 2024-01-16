@@ -11,13 +11,20 @@
 #include <kernel/vspace.h>
 
 /* The max number of free memory regions is:
- * +1 for each available physical memory region (elements in avail_p_regs)
+ * +1 for each available physical memory region:
+ *  if using avail_p_regs: # elements in avail_p_regs
+ *  otherwise assume a constant as the max the elfloader can pass in
  * +1 for each MODE_RESERVED region, there might be none
  * +1 to allow the kernel to release its own boot data region
  * +1 for a possible gap between ELF images and rootserver objects
  */
-#define MAX_NUM_FREEMEM_REG (ARRAY_SIZE(avail_p_regs) + MODE_RESERVED + 1 + 1)
+#ifdef CONFIG_USE_ELFLOADER_MEM_REGS
+#define NUM_PHYSICAL_REGIONS (32)
+#else
+#define NUM_PHYSICAL_REGIONS (ARRAY_SIZE(avail_p_regs))
+#endif
 
+#define MAX_NUM_FREEMEM_REG (NUM_PHYSICAL_REGIONS + MODE_RESERVED + 1 + 1)
 /* The regions reserved by the boot code are:
  * +1 for kernel
  * +1 for device tree binary

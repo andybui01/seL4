@@ -81,7 +81,7 @@ typedef struct seL4_BootInfo {
  * structure. Due to internal restrictions, the size must be of the form 2^n and
  * the minimum is one page.
  */
-#define seL4_BootInfoFrameBits  seL4_PageBits
+#define seL4_BootInfoFrameBits  (seL4_PageBits + 1)
 #define seL4_BootInfoFrameSize  LIBSEL4_BIT(seL4_BootInfoFrameBits)
 
 SEL4_COMPILE_ASSERT(
