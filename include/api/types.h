@@ -130,9 +130,10 @@ extern struct debug_syscall_error current_debug_error;
  */
 #define userError(M, ...) \
     do {                                                                       \
-        out_error(ANSI_DARK "<<" ANSI_GREEN "seL4(CPU %" SEL4_PRIu_word ")"    \
+        out_error(ANSI_DARK "<<" ANSI_GREEN "seL4(CPU %" SEL4_PRIu_word " DOM %" SEL4_PRIu_word ")"    \
                 ANSI_DARK " [%s/%d T%p \"%s\" @%lx]: " M ">>" ANSI_RESET "\n", \
                 CURRENT_CPU_INDEX(),                                           \
+                NODE_STATE(ksCurThread)->tcbDomain,                            \
                 __func__, __LINE__, NODE_STATE(ksCurThread),                   \
                 THREAD_NAME,                                                   \
                 (word_t)getRestartPC(NODE_STATE(ksCurThread)),                 \
