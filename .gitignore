@@ -27,3 +27,4 @@ manual/generated
 
 # Emacs backups
 *~
+.vscode/
