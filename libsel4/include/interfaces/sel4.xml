@@ -464,7 +464,7 @@
             <error name="seL4_IllegalOperation">
                 <description>
                     The <texttt text="vspace_root"/> is a CPtr to a capability of the wrong type.
-                    Or, the <texttt text="vspace_root"/> is not assigned to an ASID pool.
+                    Or, the <texttt text="vspace_root_data"/> is not assigned to an ASID pool.
                 </description>
             </error>
             <error name="seL4_InvalidCapability">
@@ -475,6 +475,35 @@
             <error name="seL4_RevokeFirst">
                 <description>
                     The <texttt text="vspace_root"/> is a CPtr to a capability of the wrong type.
+                </description>
+            </error>
+        </method>
+
+        <method id="TCBSetCSpace" name="SetCSpace" manual_name="Set CSpace" manual_label="tcb_setcspace">
+            <brief>
+                Set the CSpace of a thread
+            </brief>
+            <description>
+                <docref>See <autoref label="sec:threads"/></docref>
+            </description>
+            <param dir="in" name="cspace_root" type="seL4_CPtr"
+                description="The new CSpace root."/>
+            <param dir="in" name="cspace_root_data" type="seL4_Word"
+                description="Optionally set the guard and guard size of the new root CNode. If set to zero, this parameter has no effect."/>
+            <error name="seL4_IllegalOperation">
+                <description>
+                    The <texttt text="cspace_root"/> is a CPtr to a capability of the wrong type.
+                    Or, the <texttt text="cspace_root_data"/> is invalid.
+                </description>
+            </error>
+            <error name="seL4_InvalidCapability">
+                <description>
+                    The <texttt text="_service"/> is a CPtr to a capability of the wrong type.
+                </description>
+            </error>
+            <error name="seL4_RevokeFirst">
+                <description>
+                    The <texttt text="cspace_root"/> is a CPtr to a capability of the wrong type.
                 </description>
             </error>
         </method>
