@@ -252,12 +252,14 @@ exception_t decodeCNodeInvocation(word_t invLabel, word_t length, cap_t cap,
 
         lu_ret = lookupSourceSlot(srcRoot, srcIndex, srcDepth);
         if (lu_ret.status != EXCEPTION_NONE) {
+            userError("CNode operation: Source slot invalid.");
             return lu_ret.status;
         }
         srcSlot = lu_ret.slot;
 
         lu_ret = lookupPivotSlot(pivotRoot, pivotIndex, pivotDepth);
         if (lu_ret.status != EXCEPTION_NONE) {
+            userError("CNode operation: Pivot slot invalid.");
             return lu_ret.status;
         }
         pivotSlot = lu_ret.slot;
@@ -271,11 +273,13 @@ exception_t decodeCNodeInvocation(word_t invLabel, word_t length, cap_t cap,
         if (srcSlot != destSlot) {
             status = ensureEmptySlot(destSlot);
             if (status != EXCEPTION_NONE) {
+                userError("CNode Rotate: destination slot is not empty.");
                 return status;
             }
         }
 
         if (cap_get_capType(srcSlot->cap) == cap_null_cap) {
+            userError("CNode Rotate: no capability in source slot.");
             current_syscall_error.type = seL4_FailedLookup;
             current_syscall_error.failedLookupWasSource = 1;
             current_lookup_fault = lookup_fault_missing_capability_new(srcDepth);
@@ -283,6 +287,7 @@ exception_t decodeCNodeInvocation(word_t invLabel, word_t length, cap_t cap,
         }
 
         if (cap_get_capType(pivotSlot->cap) == cap_null_cap) {
+            userError("CNode Rotate: no capability in pivot slot.");
             current_syscall_error.type = seL4_FailedLookup;
             current_syscall_error.failedLookupWasSource = 0;
             current_lookup_fault = lookup_fault_missing_capability_new(pivotDepth);

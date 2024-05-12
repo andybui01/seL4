@@ -843,6 +843,9 @@ exception_t decodeTCBInvocation(word_t invLabel, word_t length, cap_t cap,
     case TCBSetVSpace:
         return decodeSetVSpace(cap, length, slot, buffer);
 
+    case TCBSetCSpace:
+        return decodeSetCSpace(cap, length, slot, buffer);
+
     case TCBSetSpace:
         return decodeSetSpace(cap, length, slot, buffer);
 
@@ -1502,6 +1505,53 @@ exception_t decodeSetVSpace(cap_t cap, word_t length, cte_t *slot, word_t *buffe
                0, cap_null_cap_new(),
                NULL,
                thread_control_caps_update_vspace);
+
+}
+
+exception_t decodeSetCSpace(cap_t cap, word_t length, cte_t *slot, word_t *buffer)
+{
+    word_t cRootData;
+    cte_t *cRootSlot;
+    cap_t cRootCap;
+    deriveCap_ret_t dc_ret;
+
+    if (length < 1 || current_extra_caps.excaprefs[0] == NULL) {
+        userError("TCB SetCSpace: Truncated message.");
+        current_syscall_error.type = seL4_TruncatedMessage;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    cRootData = getSyscallArg(0, buffer);
+    cRootSlot = current_extra_caps.excaprefs[0];
+    cRootCap  = current_extra_caps.excaprefs[0]->cap;
+
+    if (slotCapLongRunningDelete(
+            TCB_PTR_CTE_PTR(cap_thread_cap_get_capTCBPtr(cap), tcbCTable))) {
+        userError("TCB SetCSpace: CSpace currently being deleted.");
+        current_syscall_error.type = seL4_IllegalOperation;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    if (cRootData != 0) {
+        cRootCap = updateCapData(false, cRootData, cRootCap);
+    }
+
+    dc_ret = deriveCap(cRootSlot, cRootCap);
+    if (dc_ret.status != EXCEPTION_NONE) {
+        return dc_ret.status;
+    }
+    cRootCap = dc_ret.cap;
+
+    setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
+    return invokeTCB_ThreadControlCaps(
+               TCB_PTR(cap_thread_cap_get_capTCBPtr(cap)), slot,
+               cap_null_cap_new(), NULL,
+               cap_null_cap_new(), NULL,
+               cRootCap, cRootSlot,
+               cap_null_cap_new(), NULL,
+               0, cap_null_cap_new(),
+               NULL,
+               thread_control_caps_update_cspace);
 
 }
 
