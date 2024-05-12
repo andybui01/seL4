@@ -450,6 +450,35 @@
             </error>
         </method>
 
+        <method id="TCBSetVSpace" name="SetVSpace" manual_name="Set VSpace" manual_label="tcb_setvspace">
+            <brief>
+                Set the VSpace of a thread
+            </brief>
+            <description>
+                <docref>See <autoref label="sec:threads"/></docref>
+            </description>
+            <param dir="in" name="vspace_root" type="seL4_CPtr"
+                description="The new VSpace root."/>
+            <param dir="in" name="vspace_root_data" type="seL4_Word"
+                description="Has no effect on x86 or ARM processors."/>
+            <error name="seL4_IllegalOperation">
+                <description>
+                    The <texttt text="vspace_root"/> is a CPtr to a capability of the wrong type.
+                    Or, the <texttt text="vspace_root"/> is not assigned to an ASID pool.
+                </description>
+            </error>
+            <error name="seL4_InvalidCapability">
+                <description>
+                    The <texttt text="_service"/> is a CPtr to a capability of the wrong type.
+                </description>
+            </error>
+            <error name="seL4_RevokeFirst">
+                <description>
+                    The <texttt text="vspace_root"/> is a CPtr to a capability of the wrong type.
+                </description>
+            </error>
+        </method>
+
         <method id="TCBSetSpace" name="SetSpace" manual_name="Set Space" manual_label="tcb_setspace">
             <condition><not><config var="CONFIG_KERNEL_MCS"/></not></condition>
             <brief>

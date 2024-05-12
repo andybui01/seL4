@@ -840,6 +840,9 @@ exception_t decodeTCBInvocation(word_t invLabel, word_t length, cap_t cap,
     case TCBSetIPCBuffer:
         return decodeSetIPCBuffer(cap, length, slot, buffer);
 
+    case TCBSetVSpace:
+        return decodeSetVSpace(cap, length, slot, buffer);
+
     case TCBSetSpace:
         return decodeSetSpace(cap, length, slot, buffer);
 
@@ -1449,6 +1452,59 @@ exception_t decodeSetIPCBuffer(cap_t cap, word_t length, cte_t *slot, word_t *bu
 #endif
 }
 
+exception_t decodeSetVSpace(cap_t cap, word_t length, cte_t *slot, word_t *buffer)
+{
+    word_t vRootData;
+    cte_t *vRootSlot;
+    cap_t vRootCap;
+    deriveCap_ret_t dc_ret;
+
+    if (length < 1 || current_extra_caps.excaprefs[0] == NULL) {
+        userError("TCB SetVSpace: Truncated message.");
+        current_syscall_error.type = seL4_TruncatedMessage;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    vRootData = getSyscallArg(0, buffer);
+    vRootSlot  = current_extra_caps.excaprefs[0];
+    vRootCap   = current_extra_caps.excaprefs[0]->cap;
+
+    if (slotCapLongRunningDelete(
+            TCB_PTR_CTE_PTR(cap_thread_cap_get_capTCBPtr(cap), tcbVTable))) {
+        userError("TCB SetVSpace: VSpace currently being deleted.");
+        current_syscall_error.type = seL4_IllegalOperation;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    if (vRootData != 0) {
+        vRootCap = updateCapData(false, vRootData, vRootCap);
+    }
+
+    dc_ret = deriveCap(vRootSlot, vRootCap);
+    if (dc_ret.status != EXCEPTION_NONE) {
+        return dc_ret.status;
+    }
+    vRootCap = dc_ret.cap;
+
+    if (!isValidVTableRoot(vRootCap)) {
+        userError("TCB SetVSpace: Invalid VSpace cap.");
+        current_syscall_error.type = seL4_IllegalOperation;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
+    return invokeTCB_ThreadControlCaps(
+               TCB_PTR(cap_thread_cap_get_capTCBPtr(cap)), slot,
+               cap_null_cap_new(), NULL,
+               cap_null_cap_new(), NULL,
+               cap_null_cap_new(), NULL,
+               vRootCap, vRootSlot,
+               0, cap_null_cap_new(),
+               NULL,
+               thread_control_caps_update_vspace);
+
+}
+
 #ifdef CONFIG_KERNEL_MCS
 #define DECODE_SET_SPACE_PARAMS 2
 #else
@@ -1732,12 +1788,14 @@ exception_t invokeTCB_ThreadControlCaps(tcb_t *target, cte_t *slot,
         }
     }
 
-    if (updateFlags & thread_control_caps_update_space) {
+    if (updateFlags & thread_control_caps_update_cspace) {
         e = installTCBCap(target, tCap, slot, tcbCTable, cRoot_newCap, cRoot_srcSlot);
         if (e != EXCEPTION_NONE) {
             return e;
         }
+    }
 
+    if (updateFlags & thread_control_caps_update_vspace) {
         e = installTCBCap(target, tCap, slot, tcbVTable, vRoot_newCap, vRoot_srcSlot);
         if (e != EXCEPTION_NONE) {
             return e;

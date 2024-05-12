@@ -140,6 +140,8 @@ exception_t decodeSetSchedParams(cap_t cap, word_t length, word_t *buffer);
 #endif
 exception_t decodeSetIPCBuffer(cap_t cap, word_t length,
                                cte_t *slot, word_t *buffer);
+exception_t decodeSetVSpace(cap_t cap, word_t length,
+                            cte_t *slot, word_t *buffer);
 exception_t decodeSetSpace(cap_t cap, word_t length,
                            cte_t *slot, word_t *buffer);
 exception_t decodeDomainInvocation(word_t invLabel, word_t length, word_t *buffer);
@@ -153,9 +155,11 @@ exception_t decodeSetTimeoutEndpoint(cap_t cap, cte_t *slot);
 #ifdef CONFIG_KERNEL_MCS
 enum thread_control_caps_flag {
     thread_control_caps_update_ipc_buffer = 0x1,
-    thread_control_caps_update_space = 0x2,
-    thread_control_caps_update_fault = 0x4,
-    thread_control_caps_update_timeout = 0x8,
+    thread_control_caps_update_vspace = 0x2,
+    thread_control_caps_update_cspace = 0x4,
+    thread_control_caps_update_space = (thread_control_caps_update_vspace | thread_control_caps_update_cspace),
+    thread_control_caps_update_fault = 0x10,
+    thread_control_caps_update_timeout = 0x20,
 };
 
 enum thread_control_sched_flag {
