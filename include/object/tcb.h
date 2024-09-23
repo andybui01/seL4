@@ -144,6 +144,8 @@ exception_t decodeSetVSpace(cap_t cap, word_t length,
                             cte_t *slot, word_t *buffer);
 exception_t decodeSetCSpace(cap_t cap, word_t length,
                             cte_t *slot, word_t *buffer);
+exception_t decodeSetFaultHandler(cap_t cap, word_t length,
+                                  cte_t *slot, word_t *buffer);
 exception_t decodeSetSpace(cap_t cap, word_t length,
                            cte_t *slot, word_t *buffer);
 exception_t decodeDomainInvocation(word_t invLabel, word_t length, word_t *buffer);

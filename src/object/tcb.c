@@ -846,6 +846,9 @@ exception_t decodeTCBInvocation(word_t invLabel, word_t length, cap_t cap,
     case TCBSetCSpace:
         return decodeSetCSpace(cap, length, slot, buffer);
 
+    case TCBSetFaultHandler:
+        return decodeSetFaultHandler(cap, length, slot, buffer);
+
     case TCBSetSpace:
         return decodeSetSpace(cap, length, slot, buffer);
 
@@ -1553,6 +1556,28 @@ exception_t decodeSetCSpace(cap_t cap, word_t length, cte_t *slot, word_t *buffe
                NULL,
                thread_control_caps_update_cspace);
 
+}
+
+exception_t decodeSetFaultHandler(cap_t cap, word_t length, cte_t *slot, word_t *buffer)
+{
+    cte_t *fhSlot = current_extra_caps.excaprefs[0];
+    cap_t fhCap = current_extra_caps.excaprefs[0]->cap;
+
+    if (!validFaultHandler(fhCap)) {
+        userError("TCB SetSpace: fault endpoint cap invalid.");
+        current_syscall_error.invalidCapNumber = 1;
+        return EXCEPTION_SYSCALL_ERROR;
+    }
+
+    setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
+    return invokeTCB_ThreadControlCaps(
+               TCB_PTR(cap_thread_cap_get_capTCBPtr(cap)), slot,
+               fhCap, fhSlot,
+               cap_null_cap_new(), NULL,
+               cap_null_cap_new(), NULL,
+               cap_null_cap_new(), NULL,
+               0, cap_null_cap_new(), NULL,
+               thread_control_caps_update_fault);
 }
 
 #ifdef CONFIG_KERNEL_MCS

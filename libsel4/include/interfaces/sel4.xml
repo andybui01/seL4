@@ -508,6 +508,24 @@
             </error>
         </method>
 
+        <method id="TCBSetFaultHandler" name="SetFaultHandler" manual_name="Set Fault Handler" manual_label="tcb_setfaulthandler">
+            <condition><config var="CONFIG_KERNEL_MCS"/></condition>
+            <brief>
+                Set the fault handler of a thread.
+            </brief>
+            <description>
+                <docref>See <autoref label="sec:threads"/></docref>
+            </description>
+            <param dir="in" name="fault_ep" type="seL4_Word"
+                description="CPtr to the endpoint which receives IPCs when this thread faults. On MCS this cap gets copied into the TCB."/>
+            <error name="seL4_InvalidCapability">
+                <description>
+                    The <texttt text="fault_ep"/> is a CPtr to a capability of the wrong type.
+                    Or, <texttt text="fault_ep"/> does not have both Write rights and either Grant or GrantReply rights to the Endpoint <docref>(see <autoref label="sec:cap_rights"/>)</docref>.
+                </description>
+            </error>
+        </method>
+
         <method id="TCBSetSpace" name="SetSpace" manual_name="Set Space" manual_label="tcb_setspace">
             <condition><not><config var="CONFIG_KERNEL_MCS"/></not></condition>
             <brief>
