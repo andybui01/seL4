@@ -604,6 +604,11 @@ static BOOT_CODE bool_t try_init_kernel(
     /* finalise the bootinfo frame */
     bi_finalise();
 
+#ifdef CONFIG_ARCH_AARCH64
+    /* We need to clean any shared kernel-initial thread data down to userspace
+     * as we'll have an aliasing issue with the cache. */
+    clean_dcache_va(bi_frame_vptr, BIT(seL4_BootInfoFrameBits));
+#else
     /* Flushing the L1 cache and invalidating the TLB is good enough here to
      * make sure everything written by the kernel is visible to userland. There
      * are no uncached userland frames at this stage that require enforcing
@@ -615,6 +620,7 @@ static BOOT_CODE bool_t try_init_kernel(
     if (config_set(CONFIG_ARM_HYPERVISOR_SUPPORT)) {
         invalidateHypTLB();
     }
+#endif
 
     ksNumCPUs = 1;
 
