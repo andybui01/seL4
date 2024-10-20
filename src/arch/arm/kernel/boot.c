@@ -560,11 +560,20 @@ static BOOT_CODE bool_t try_init_kernel(
     /* create the idle thread */
     create_idle_thread();
 
+#ifdef CONFIG_ARCH_AARCH64
+    /* ARM DDI 0487K D8.2.6
+     * A DSB is required for the page table modification to be observed
+     * by the page table walker (PTW). We use "nshst" as the initial thread
+     * is only running on the boot CPU and in this case we only care about
+     * the store being observed by the PTW. */
+    dsb_nshst();
+#else
     /* Before creating the initial thread (which also switches to it)
      * we clean the cache so that any page table information written
      * as a result of calling create_frames_of_region will be correctly
      * read by the hardware page table walker */
     cleanInvalidateL1Caches();
+#endif
 
     /* create the initial thread */
     tcb_t *initial = create_initial_thread(

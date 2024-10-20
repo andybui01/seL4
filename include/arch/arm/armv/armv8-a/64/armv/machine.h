@@ -21,6 +21,11 @@ static inline void dsb_ishst(void)
     asm volatile("dsb ishst" ::: "memory");
 }
 
+static inline void dsb_nshst(void)
+{
+    asm volatile("dsb nshst" ::: "memory");
+}
+
 static inline void dmb(void)
 {
     asm volatile("dmb sy" ::: "memory");
